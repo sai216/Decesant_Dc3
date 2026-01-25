@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import AdminSidebar from '@/components/AdminSidebar';
 import Hero from '@/components/Hero';
 import PricingTiers from '@/components/PricingTiers';
@@ -19,6 +20,7 @@ import { UserProfile, AuthStage } from '@/types';
 import { SERVICE_TIERS } from '@/constants';
 
 const Home: React.FC = () => {
+  const { user: privyUser, login, logout } = usePrivy();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -46,6 +48,32 @@ const Home: React.FC = () => {
     { id: 'learn-to-launch', label: 'Talent', icon: Rocket },
     { id: 'help', label: 'Logic', icon: BookOpen }
   ], []);
+
+  // Sync Privy user with local state
+  useEffect(() => {
+    if (privyUser) {
+      const email = privyUser.email?.address || privyUser.phone?.number || 'unknown@user.com';
+      const domain = email.includes('@') ? email.split('@')[1] : 'verified';
+      
+      setCurrentUser({
+        userId: privyUser.id,
+        email,
+        businessDomain: domain,
+        srt: 942,
+        nodes: 12,
+        tier: 'ELITE',
+        authStage: AuthStage.ActiveQuoting,
+        roles: ['user'],
+        authTimestamp: Date.now(),
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        authProvider: 'privy',
+        jwtToken: 'jwt_' + Math.random().toString(36).substring(7)
+      });
+      setConsoleOpen(false);
+    } else {
+      setCurrentUser(null);
+    }
+  }, [privyUser]);
 
   // System time update
   useEffect(() => {
@@ -115,28 +143,22 @@ const Home: React.FC = () => {
     setSidebarOpen(false);
   }, []);
 
-  // Login handler
-  const handleLogin = (email: string) => {
-    const domain = email.split('@')[1];
-    setCurrentUser({
-      userId: crypto.randomUUID(),
-      email,
-      businessDomain: domain,
-      srt: 942,
-      nodes: 12,
-      tier: 'ELITE',
-      authStage: AuthStage.ActiveQuoting,
-      roles: ['user'],
-      authTimestamp: Date.now(),
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-      authProvider: 'privy',
-      jwtToken: 'jwt_' + Math.random().toString(36).substring(7)
-    });
-    setConsoleOpen(true);
+  // Login handler - delegates to Privy
+  const handleLogin = () => {
+    if (!privyUser) {
+      login();
+    } else {
+      setConsoleOpen(true);
+    }
   };
 
   const handleUpdateUser = (updates: Partial<UserProfile>) => {
     setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setConsoleOpen(false);
   };
 
   return (
@@ -146,7 +168,7 @@ const Home: React.FC = () => {
         <UserConsole 
           user={currentUser} 
           onClose={() => setConsoleOpen(false)} 
-          onLogout={() => setCurrentUser(null)} 
+          onLogout={handleLogout} 
           onUpdateUser={handleUpdateUser}
         />
       )}
@@ -258,7 +280,7 @@ const Home: React.FC = () => {
 
             {/* CTA Button - Properly sized */}
             <button 
-              onClick={() => currentUser ? setConsoleOpen(true) : handleNavigate('project-assessment')} 
+              onClick={handleLogin} 
               className={`group h-9 sm:h-10 lg:h-12 xl:h-14 px-3 sm:px-5 lg:px-8 xl:px-12 rounded-lg lg:rounded-xl xl:rounded-2xl text-[8px] sm:text-[9px] font-black text-black bg-decensat hover:bg-white transition-all flex items-center justify-center gap-2 lg:gap-3 uppercase tracking-[0.2em] sm:tracking-[0.25em] active:scale-95 shadow-glow-md border border-black/10 transform-gpu relative overflow-hidden whitespace-nowrap shrink-0 ${!currentUser ? 'animate-pulse-subtle' : ''}`}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
@@ -300,14 +322,14 @@ const Home: React.FC = () => {
           </section>
 
           <section id="project-assessment" className="scroll-mt-16 lg:scroll-mt-28 py-12 lg:py-24 contain-layout">
-            <ProjectAssessmentHub onLogin={handleLogin} />
+            <ProjectAssessmentHub onLogin={currentUser ? undefined : handleLogin} />
           </section>
 
           <section id="creative" className="scroll-mt-16 lg:scroll-mt-28 contain-layout py-12 lg:py-24">
             <PricingTiers 
               title="Platform Capabilities" 
               subtitle="Creative, Full Stack development, Web3 & Fintech-integrated for modern platforms" 
-              data={[...SERVICE_TIERS.BRANDING, ...SERVICE_TIERS.FULLSTACK, ...SERVICE_TIERS.WEB3] || []} 
+              data={[...SERVICE_TIERS.BRANDING, ...SERVICE_TIERS.FULLSTACK, ...SERVICE_TIERS.WEB3]} 
               icon={<Zap size={44} />} 
               color="bg-decensat" 
               accentBorder="border-decensat" 
