@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, memo } from 'react';
+/***import React, { useState, useRef, useEffect, memo } from 'react';
 import { Database, Zap, ArrowUpRight, Cpu, Layers, CheckCircle2, FileText, ChevronDown, Activity, ShieldCheck, Globe, Cpu as CpuIcon, BarChart3, TrendingUp, Network, ExternalLink, Target, Sparkles, Fingerprint, Lock, ArrowRight, Radio, ShieldAlert } from 'lucide-react';
 import { PORTFOLIO_IMAGES } from '../assets/images/registry';
 
@@ -105,7 +105,7 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
         transform: `perspective(2000px) rotateX(${mousePos.y * -6}deg) rotateY(${mousePos.x * 6}deg)`
       }}
     >
-      {/* Dynamic Texture Overlay */}
+   
       <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-30 transition-opacity duration-1000">
         <img 
           src={item.bgImage} 
@@ -116,7 +116,7 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col">
-        {/* Header Metadata */}
+       
         <div className="flex justify-between items-start mb-8">
           <div className="px-4 py-1.5 border border-white/10 bg-white/5 rounded-lg text-[9px] font-mono text-slate-500 uppercase tracking-widest group-hover:text-decensat group-hover:border-decensat/30 transition-all">
             RECORD_{item.id.replace('-', '_').toUpperCase()}
@@ -126,7 +126,6 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
           </div>
         </div>
 
-        {/* Title Group */}
         <div className="mb-6">
           <h4 className="text-3xl lg:text-5xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-decensat transition-colors leading-none italic">
             {item.name}
@@ -136,7 +135,7 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
           </div>
         </div>
 
-        {/* Repositioned Expand Button - Higher up as requested */}
+        
         <div className="mb-8">
             <button 
               onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
@@ -161,7 +160,7 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
           </div>
         </div>
 
-        {/* Narrative Description and CASE_STUDY link */}
+       
         <div className="mt-auto pt-10 border-t border-white/5 bg-black/20 rounded-[2.5rem] p-8 relative group/desc">
           <p className="text-sm lg:text-base text-slate-400 font-bold leading-relaxed uppercase tracking-tight italic border-l-4 border-decensat/30 pl-6 pr-24">
             {item.longDescription}
@@ -179,7 +178,6 @@ const ProjectCard = memo(({ item, isSelected, onSelect }: { item: PortfolioItem,
         </div>
       </div>
       
-      {/* Interactive Footer */}
       <div className="mt-4 pt-8 border-t border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
@@ -269,4 +267,4 @@ const PortfolioSection: React.FC = () => {
   );
 };
 
-export default PortfolioSection;
+export default PortfolioSection;  ***/

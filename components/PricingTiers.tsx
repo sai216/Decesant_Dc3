@@ -22,10 +22,9 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [],
 
   const scroll = (direction: 'up' | 'down') => {
     if (scrollRef.current) {
-      const { scrollTop, clientHeight } = scrollRef.current;
-      const scrollAmount = clientHeight * 0.7;
-      scrollRef.current.scrollTo({
-        top: direction === 'up' ? scrollTop - scrollAmount : scrollTop + scrollAmount,
+      const scrollAmount = 400;
+      scrollRef.current.scrollBy({
+        top: direction === 'up' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
       });
     }
@@ -77,7 +76,7 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [],
         {/* Enhanced Bundle Grid */}
         <div 
           ref={scrollRef} 
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 transition-all duration-500 ${showArrows ? 'lg:max-h-[1600px] overflow-y-auto no-scrollbar scroll-smooth' : ''}`}
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 transition-all duration-500 ${showArrows ? 'lg:h-[1600px] overflow-y-auto scroll-smooth' : ''}`}
         >
           {data.map((item, idx) => {
             // Mapping incoming data to Bundle format for the BundleCard

@@ -45,12 +45,15 @@ export const auditSubmissionSchema = z.object({
   spec: artifactSchema.optional(),
   ...identitySchema.shape,
   scheduledAt: z.string().datetime().optional()
-}).refinement((data) => {
-  if (data.country === 'US' && !data.otpVerified) return false;
-  return true;
-}, {
-  message: 'OTP verification required for USA contacts',
-  path: ['otpVerified']
+}).superRefine((data, ctx) => {
+  // Enforce OTP verification for US contacts
+  if (data.country === 'US' && !data.otpVerified) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'OTP verification required for USA contacts',
+      path: ['otpVerified']
+    });
+  }
 });
 
 export interface ValidationResult {

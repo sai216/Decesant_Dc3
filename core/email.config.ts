@@ -1,4 +1,4 @@
-import { EmailSequenceTemplate, UserProfile } from './types';
+import { EmailSequenceTemplate, UserProfile } from '../types';
 
 /**
  * INSTITUTIONAL COMMUNICATION MANIFEST (v4.8.0)

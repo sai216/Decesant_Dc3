@@ -3,8 +3,6 @@
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "lib": [
       "ES2022",
       "DOM",

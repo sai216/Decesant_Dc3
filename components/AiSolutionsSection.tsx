@@ -3,9 +3,7 @@ import { AI_OPTIMIZATION_NODES } from '../constants';
 import { AiSolution } from '../types';
 import { 
   MessageSquare, Zap, Globe, ArrowRight, Brain, Phone, 
-  Cpu, Calendar, Settings, Search, Hammer, Rocket, 
-  ChevronUp, ChevronDown, ShieldCheck, CheckCircle2,
-  Activity, Terminal, Package, Info, X, ShieldAlert, Clock, Coins, Check, AlertCircle, Sparkles, Lock, Bot, Smartphone
+  ChevronUp, ChevronDown, Package, Sparkles, Lock, Smartphone
 } from 'lucide-react';
 import { checkSchedulingWindow } from '../core/validation';
 import ServiceBookingModal from './ServiceBookingModal';
@@ -21,106 +19,70 @@ const IconMap = {
 
 const AiNodeCard: React.FC<{ item: AiSolution; onBook: (item: AiSolution, mode: 'book' | 'checkout') => void }> = ({ item, onBook }) => {
   const Icon = IconMap[item.iconName as keyof typeof IconMap] || Zap;
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (window.innerWidth < 768 || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
-  };
-
-  const handleMouseLeave = () => {
-    setMousePos({ x: 0, y: 0 });
-  };
   
   return (
     <div 
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="w-full bg-zinc-950 border-2 sm:border-[3px] border-white/5 rounded-[2rem] sm:rounded-[3.5rem] p-5 xs:p-6 sm:p-10 flex flex-col transition-all duration-700 sm:hover:border-decensat/40 sm:hover:shadow-[0_40px_80px_-20px_rgba(163,230,53,0.15)] group min-h-fit sm:min-h-[600px] lg:min-h-[740px] transform-gpu relative overflow-hidden h-full"
+      className="w-full bg-zinc-950 border-2 border-white/5 rounded-[1.5rem] p-5 sm:p-6 flex flex-col transition-all duration-500 hover:border-decensat/40 group relative overflow-hidden h-full"
     >
-      <div 
-        className="absolute top-0 right-0 p-8 sm:p-12 transition-all duration-1000 ease-out pointer-events-none transform-gpu opacity-[0.03] sm:group-hover:opacity-10 sm:group-hover:text-decensat"
-        style={{
-          transform: `translate(${mousePos.x * -120}px, ${mousePos.y * -120}px) scale(1.2) rotate(${mousePos.x * 15}deg)`,
-        }}
-      >
-        <Icon size={240} strokeWidth={1} className="hidden sm:block" />
-      </div>
 
-      <div className="flex justify-between items-start mb-6 sm:mb-10 relative z-10 gap-2">
-        <div className="bg-decensat/10 border border-decensat/20 text-decensat px-2.5 py-1.5 sm:px-6 sm:py-2 rounded-lg sm:rounded-xl text-center font-black text-[7px] sm:text-[8px] uppercase tracking-[0.2em] sm:tracking-[0.3em] w-fit shrink-0 sm:group-hover:bg-decensat sm:group-hover:text-black transition-all duration-500">
+      <div className="flex justify-between items-start mb-5 gap-3">
+        <div className="bg-decensat/10 border border-decensat/20 text-decensat px-3 py-1.5 rounded-lg text-center font-black text-[8px] uppercase tracking-[0.2em] w-fit">
           {item.headline}
         </div>
-        <div className="flex flex-col items-end">
-           <div className="flex items-baseline gap-1 sm:gap-2">
-              <span className="text-[8px] sm:text-sm font-black text-decensat opacity-50 font-mono tracking-widest uppercase">USDC</span>
-              <div className="text-lg xs:text-xl sm:text-3xl font-black text-white font-mono tracking-tighter">
-                {item.price === 0 ? 'Variable' : `$${item.price.toLocaleString()}`}
-              </div>
-           </div>
-           <div className="text-[6px] sm:text-[7px] font-black text-slate-500 uppercase tracking-widest mt-1 sm:mt-1.5 flex items-center gap-1 sm:gap-1.5 font-mono italic text-right max-w-[100px] xs:max-w-[120px] sm:max-w-[180px] leading-tight ml-auto">
-              <Sparkles size={8} className="text-decensat/60 shrink-0" />
-              {item.price === 0 ? '443 Smart Protocol' : 'UCP + A2A Verified'}
+        <div className="flex items-baseline gap-2">
+           <span className="text-xs font-black text-decensat/50 font-mono">USDC</span>
+           <div className="text-2xl sm:text-3xl font-black text-white font-mono">
+             {item.price === 0 ? 'Variable' : `$${item.price.toLocaleString()}`}
            </div>
         </div>
       </div>
       
-      <div className="flex items-center gap-3 sm:gap-6 mb-5 sm:mb-8 relative z-10">
-        <div className="w-10 h-10 sm:w-16 sm:h-16 bg-white/5 rounded-xl sm:rounded-[1.8rem] flex items-center justify-center text-decensat border border-white/10 sm:group-hover:scale-110 sm:group-hover:rotate-6 transition-all duration-500 shadow-xl shrink-0">
-          <Icon strokeWidth={2.5} className="w-[18px] h-[18px] sm:w-8 sm:h-8" />
+      <div className="flex items-center gap-4 mb-5">
+        <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-decensat border border-white/10">
+          <Icon strokeWidth={2.5} className="w-6 h-6" />
         </div>
-        <h3 className="text-lg xs:text-xl sm:text-3xl font-black text-white tracking-tighter leading-none sm:group-hover:text-decensat transition-colors uppercase italic sm:not-italic truncate">
+        <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none uppercase">
           {item.title}
         </h3>
       </div>
 
-      <p className="text-slate-400 text-xs xs:text-sm sm:text-lg font-bold leading-relaxed mb-6 sm:mb-10 min-h-fit sm:min-h-[80px] relative z-10 line-clamp-3 uppercase tracking-tight italic">
+      <p className="text-slate-400 text-sm font-bold leading-relaxed mb-6 line-clamp-2 uppercase italic">
         {item.subHeadline}
       </p>
 
-      <div className="flex-grow space-y-6 mb-8 relative z-10">
-        <div className="space-y-3">
-           <div className="flex items-center gap-2 mb-2 sm:mb-4">
-              <Package className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-decensat" />
-              <span className="text-[7px] xs:text-[8px] sm:text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Institutional_Bundle</span>
-           </div>
-           <div className="grid gap-1.5 sm:gap-2">
-              {item.services?.slice(0, 4).map((service, i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 sm:p-4 rounded-xl bg-white/5 border border-white/5 sm:hover:border-decensat/20 transition-all group/svc">
-                   <div className="w-1 h-1 rounded-full bg-decensat/40 sm:group-hover/svc:bg-decensat transition-colors shrink-0" />
-                   <span className="text-[7px] xs:text-[9px] sm:text-[11px] font-black text-slate-300 uppercase tracking-widest leading-tight">{service}</span>
-                </div>
-              ))}
-           </div>
+      <div className="flex-grow mb-6">
+        <div className="flex items-center gap-2 mb-3">
+           <Package className="w-3 h-3 text-decensat" />
+           <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Enterprise_Bundle</span>
+        </div>
+        <div className="grid gap-2">
+           {item.services?.slice(0, 4).map((service, i) => (
+             <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-decensat/20 transition-all">
+                <div className="w-1 h-1 rounded-full bg-decensat/40" />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">{service}</span>
+             </div>
+           ))}
         </div>
       </div>
 
-      <div className="pt-6 sm:pt-8 border-t border-white/5 mt-auto relative z-10">
+      <div className="pt-5 border-t border-white/5 mt-auto">
         {item.price > 0 ? (
           <button 
             onClick={() => onBook(item, 'checkout')}
-            className="w-full py-4 sm:py-5 px-4 sm:px-8 bg-decensat text-black rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.25em] leading-tight hover:bg-white transition-all duration-500 flex items-center justify-center gap-3 sm:gap-4 shadow-xl active:scale-95 text-center group/ucp"
+            className="w-full py-4 px-6 bg-decensat text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-3 active:scale-95"
           >
-            <div className="flex gap-2 items-center shrink-0">
-              <Lock size={14} className="text-black/60" />
-              <Globe size={14} className="text-blue-600 animate-spin-slow" />
-            </div>
-            <span className="flex-1 truncate">UCP Settlement</span>
-            <ArrowRight strokeWidth={3} className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/ucp:translate-x-1 transition-transform shrink-0" />
+            <Lock size={14} />
+            <span>UCP Settlement</span>
+            <ArrowRight strokeWidth={3} className="w-4 h-4" />
           </button>
         ) : (
           <button 
             onClick={() => onBook(item, 'book')}
-            className="w-full py-4 sm:py-5 px-4 sm:px-8 bg-decensat text-black rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.25em] leading-tight hover:bg-white transition-all duration-500 flex items-center justify-center gap-3 sm:gap-4 shadow-xl active:scale-95 text-center group/byo"
+            className="w-full py-4 px-6 bg-decensat text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-3 active:scale-95"
           >
-            <Smartphone size={20} className="shrink-0" />
-            <span className="flex-1 truncate">Book Strategy Call</span>
-            <ArrowRight strokeWidth={3} className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/byo:translate-x-1 transition-transform shrink-0" />
+            <Smartphone size={16} />
+            <span>Book Strategy Call</span>
+            <ArrowRight strokeWidth={3} className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -160,16 +122,16 @@ const AiSolutionsSection: React.FC = () => {
         />
       )}
       <div className="max-w-[1920px] mx-auto w-full">
-        <div className="mb-6 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-l-[6px] sm:border-l-[8px] border-decensat pl-4 sm:pl-8 animate-in slide-in-from-left duration-1000">
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 border-l-4 border-decensat pl-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 sm:gap-4 px-3 py-1.5 sm:px-6 sm:py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[7px] sm:text-[9px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] shadow-[0_0_30px_rgba(163,230,53,0.15)] w-fit mb-3 sm:mb-4">
-              <Brain strokeWidth={3} className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 animate-pulse" />
-              <span>CLUSTER_SYNC_ACTIVE // UCP_A2A_NATIVE</span>
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[9px] font-black uppercase tracking-widest w-fit mb-3">
+              <Brain strokeWidth={3} className="w-3 h-3" />
+              <span>AI Automation Bundles</span>
             </div>
-            <h2 className="text-2xl xs:text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-none mb-1 sm:mb-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase leading-none mb-2">
               AI Automation <span className="text-decensat italic">Bundles</span>
             </h2>
-            <p className="text-xs xs:text-base lg:text-xl text-slate-400 font-bold uppercase tracking-tight leading-tight sm:leading-relaxed max-w-2xl italic">
+            <p className="text-base text-slate-400 font-bold uppercase tracking-tight max-w-2xl italic">
               Modular AI solutions designed to automate, assist, and amplify.
             </p>
           </div>

@@ -51,17 +51,7 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* Metric Overlay - f4a signature */}
-      <div className="absolute bottom-6 sm:bottom-8 lg:bottom-10 left-6 sm:left-8 lg:left-10 hidden xl:flex flex-col gap-3 lg:gap-4 animate-in fade-in slide-in-from-left duration-1000">
-         <div className="flex flex-col">
-            <span className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Execution Index</span>
-            <span className="text-xl lg:text-2xl font-mono font-black text-white">0.994_SRA</span>
-         </div>
-         <div className="flex flex-col">
-            <span className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Latency Target</span>
-            <span className="text-xl lg:text-2xl font-mono font-black text-decensat">42ms_SYNC</span>
-         </div>
-      </div>
+
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { BillingType } from './types';
+import { BillingType } from '../types';
 
 /**
  * STRATEGIC SETTLEMENT CONFIGURATION (v4.7.2)
