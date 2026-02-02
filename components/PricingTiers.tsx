@@ -1,8 +1,7 @@
 
-import React, { useState, useRef } from 'react';
-import { ChevronUp, ChevronDown, Zap, ShieldCheck, Activity, Target } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ChevronUp, ChevronDown, Zap, ShieldCheck, Activity, Target, X } from 'lucide-react';
 import BundleCard from './BundleCard';
-import ServiceBookingModal from './ServiceBookingModal';
 // Added comment: Missing import for UI_TEXTURES from the image registry
 import { UI_TEXTURES } from '../assets/images/registry';
 
@@ -16,7 +15,7 @@ interface PricingTiersProps {
 }
 
 const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [], icon, color, accentBorder }) => {
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [learnMoreItem, setLearnMoreItem] = useState<any | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const showArrows = data.length > 3;
 
@@ -34,12 +33,37 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [],
     <section className="py-24 sm:py-32 px-6 lg:px-12 bg-[#020617] text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-f4a opacity-5 pointer-events-none" />
       
-      {selectedItem && (
-        <ServiceBookingModal 
-          item={selectedItem} 
-          onClose={() => setSelectedItem(null)} 
-          initialStep="confirmation"
-        />
+      {learnMoreItem && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-start justify-center px-4 sm:px-6 py-8 sm:py-10 overflow-y-auto">
+          <div className="bg-gradient-to-br from-zinc-900 to-black border border-decensat/40 rounded-3xl max-w-3xl w-full my-0 shadow-2xl shadow-decensat/20 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="sticky top-0 flex items-center justify-between p-6 sm:p-8 border-b border-white/10 bg-zinc-950/98 backdrop-blur-xl rounded-t-3xl z-10">
+              <h2 className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white to-decensat bg-clip-text text-transparent">
+                {learnMoreItem.name}
+              </h2>
+              <button 
+                onClick={() => setLearnMoreItem(null)}
+                className="p-2.5 text-slate-400 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 hover:border-decensat/50 active:scale-95"
+              >
+                <X size={22} strokeWidth={2.5} />
+              </button>
+            </div>
+            <div className="p-6 sm:p-8 space-y-6">
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                {learnMoreItem.summary}
+              </p>
+              {learnMoreItem.features?.length > 0 && (
+                <ul className="grid gap-2 text-slate-200 text-sm sm:text-base">
+                  {learnMoreItem.features.map((feature: string, idx: number) => (
+                    <li key={idx} className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-decensat" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="max-w-[1920px] mx-auto w-full relative">
@@ -114,7 +138,14 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [],
                 <div key={idx} className="h-full">
                 <BundleCard 
                     bundle={bundleFormat as any} 
-                    onAddToCart={() => setSelectedItem(item)}
+                    onAddToCart={() => {
+                      const section = document.getElementById('project-assessment');
+                      if (section) {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                      window.dispatchEvent(new CustomEvent('start-audit-protocol'));
+                    }}
+                    onLearnMore={() => setLearnMoreItem(item)}
                 />
                 </div>
             );

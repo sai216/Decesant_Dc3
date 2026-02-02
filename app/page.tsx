@@ -5,35 +5,33 @@ import { usePrivy } from '@privy-io/react-auth';
 import AdminSidebar from '@/components/AdminSidebar';
 import Hero from '@/components/Hero';
 import PricingTiers from '@/components/PricingTiers';
-import ExecutionIndexPortfolio from '@/components/ExecutionIndexPortfolio';
 import AiSolutionsSection from '@/components/AiSolutionsSection';
 import SuccessList from '@/components/SuccessList';
+import ExecutionIndexPortfolio from '@/components/ExecutionIndexPortfolio';
 import HelpSection from '@/components/HelpSection';
 import SovereignFooter from '@/components/SovereignFooter';
 import WhatsAppSupport from '@/components/WhatsAppSupport';
 import ProjectAssessmentHub from '@/components/ProjectAssessmentHub';
 import Learn2LaunchPathway from '@/components/Learn2LaunchPathway';
 import AiConcierge from '@/components/AiConcierge';
-import UserConsole from '@/components/UserConsole';
 import { Menu, Radio, User as UserIcon, ShieldCheck, Fingerprint, Zap, Target, BookOpen, Rocket } from 'lucide-react';
 import { UserProfile, AuthStage } from '@/types';
 import { SERVICE_TIERS } from '@/constants';
 
 const Home: React.FC = () => {
-  const { user: privyUser, login, logout } = usePrivy();
+  const { user: privyUser, login } = usePrivy();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [consoleOpen, setConsoleOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [systemTime, setSystemTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  const [systemTime, setSystemTime] = useState('');
   const mainRef = useRef<HTMLElement>(null);
 
   const sections = useMemo(() => [
     { id: 'hero', label: 'Home' },
-    { id: 'portfolio', label: 'Portfolio' },
     { id: 'node-infrastructure', label: 'Network' },
+    { id: 'portfolio', label: 'Portfolio' },
     { id: 'project-assessment', label: 'Audit' },
     { id: 'creative', label: 'Capabilities' },
     { id: 'ai-optimization', label: 'Automation' },
@@ -69,7 +67,6 @@ const Home: React.FC = () => {
         authProvider: 'privy',
         jwtToken: 'jwt_' + Math.random().toString(36).substring(7)
       });
-      setConsoleOpen(false);
     } else {
       setCurrentUser(null);
     }
@@ -77,9 +74,11 @@ const Home: React.FC = () => {
 
   // System time update
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateTime = () => {
       setSystemTime(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-    }, 60000);
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 60000);
     return () => clearInterval(timer);
   }, []);
 
@@ -143,35 +142,17 @@ const Home: React.FC = () => {
     setSidebarOpen(false);
   }, []);
 
-  // Login handler - delegates to Privy
+  // Login handler - routes to audit protocol
   const handleLogin = () => {
-    if (!privyUser) {
-      login();
-    } else {
-      setConsoleOpen(true);
+    const section = document.getElementById('project-assessment');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  };
-
-  const handleUpdateUser = (updates: Partial<UserProfile>) => {
-    setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setConsoleOpen(false);
+    window.dispatchEvent(new CustomEvent('start-audit-protocol'));
   };
 
   return (
     <div className="flex flex-col h-screen w-screen max-w-full bg-[#020617] overflow-hidden relative selection:bg-decensat selection:text-black antialiased">
-      {/* User Console Modal */}
-      {currentUser && consoleOpen && (
-        <UserConsole 
-          user={currentUser} 
-          onClose={() => setConsoleOpen(false)} 
-          onLogout={handleLogout} 
-          onUpdateUser={handleUpdateUser}
-        />
-      )}
 
       {/* Sidebar Overlay */}
       <div 
@@ -184,7 +165,6 @@ const Home: React.FC = () => {
             activeId={activeSection} 
             onClose={() => setSidebarOpen(false)} 
             user={currentUser}
-            onOpenConsole={() => { setConsoleOpen(true); setSidebarOpen(false); }}
           />
         </div>
       </div>
@@ -251,33 +231,6 @@ const Home: React.FC = () => {
 
           {/* Right Section - Properly constrained */}
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 xl:gap-8 shrink-0 min-w-0">
-            {/* System Status - Hidden on smaller screens */}
-            <div className="hidden xl:flex items-center gap-4 2xl:gap-6 pr-4 2xl:pr-6 border-r border-white/10 shrink-0">
-              <div className="flex flex-col items-end min-w-0">
-                <div className="flex items-center gap-2">
-                  <Radio size={11} className="text-decensat animate-pulse shrink-0" />
-                  <span className="text-[10px] text-white font-mono font-black tracking-[0.15em]">{systemTime}</span>
-                </div>
-                <span className="text-[6px] text-slate-700 font-bold tracking-[0.3em] uppercase mt-0.5 text-right whitespace-nowrap">UPLINK_STABLE</span>
-              </div>
-              
-              {currentUser && (
-                <button 
-                  className="flex items-center group outline-none focus-visible:text-decensat shrink-0" 
-                  onClick={() => setConsoleOpen(true)}
-                  aria-label="Open user console"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-decensat/40 transition-all overflow-hidden">
-                    {currentUser.avatarUrl ? (
-                      <img src={currentUser.avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Fingerprint size={15} className="text-decensat opacity-50 group-hover:opacity-100 transition-opacity" />
-                    )}
-                  </div>
-                </button>
-              )}
-            </div>
-
             {/* CTA Button - Properly sized */}
             <button 
               onClick={handleLogin} 
@@ -313,12 +266,12 @@ const Home: React.FC = () => {
         </section>
         
         <div className="max-w-[1920px] mx-auto px-4 xs:px-6 sm:px-8 lg:px-12 xl:px-20 w-full">
-          <section id="portfolio" className="scroll-mt-16 lg:scroll-mt-28 py-10 xs:py-12 lg:py-24 contain-layout">
-            <ExecutionIndexPortfolio />
-          </section>
-
           <section id="node-infrastructure" className="scroll-mt-16 lg:scroll-mt-28 py-10 xs:py-12 lg:py-24 contain-layout">
             <SuccessList />
+          </section>
+
+          <section id="portfolio" className="scroll-mt-16 lg:scroll-mt-28 py-12 lg:py-24 contain-layout">
+            <ExecutionIndexPortfolio />
           </section>
 
           <section id="project-assessment" className="scroll-mt-16 lg:scroll-mt-28 py-12 lg:py-24 contain-layout">

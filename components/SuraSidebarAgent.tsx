@@ -9,7 +9,7 @@ const SuraSidebarAgent: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'model', 
-      text: "This is SURA.\n\nI’m reviewing your eligibility based on verified signals—build history, intent, and reliability.\n\nIf qualified, I’ll route you to the right next step.\n\nShall we start?",
+      text: "Hi there. I can help with your next steps. How can I assist?",
       timestamp: Date.now()
     }
   ]);
@@ -70,7 +70,7 @@ const SuraSidebarAgent: React.FC = () => {
         const next = [...prev];
         const last = next[next.length - 1];
         if (last && last.role === 'model' && !last.text) {
-          last.text = "Signal interference detected. Node recalibrating.";
+          last.text = "Sorry, something went wrong. Please try again.";
         }
         return next;
       });
@@ -107,7 +107,7 @@ const SuraSidebarAgent: React.FC = () => {
               <div className="flex items-center gap-2">
                  <div className={`w-2 h-2 rounded-full ${loading ? 'bg-decensat animate-ping' : 'bg-green-500'}`} />
                  <span className={`text-[10px] font-mono ${loading ? 'text-decensat' : 'text-gray-400'}`}>
-                   {loading ? 'RECEIVING_PACKETS' : 'SURA_XHARBOT_v4.02'}
+                   {loading ? 'RECEIVING_PACKETS' : 'Sura Agent'}
                  </span>
               </div>
               <button 
@@ -179,22 +179,22 @@ const SuraSidebarAgent: React.FC = () => {
            </div>
 
            {/* Quick Actions */}
-           {messages.length === 1 && !loading && (
+            {messages.length === 1 && !loading && (
              <div className="px-4 pb-2 flex flex-wrap gap-2">
-                <button 
-                  onClick={() => handleSend("I want to check my Sovereign eligibility.")}
-                  className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 hover:text-white hover:border-juice-500 transition-all"
-                >
-                   Check Eligibility
-                </button>
-                <button 
-                   onClick={() => handleSend("Tell me about the BDR Commission pathway.")}
-                   className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 hover:text-white hover:border-juice-500 transition-all"
-                >
-                   BDR Logic
-                </button>
+               <button 
+                onClick={() => handleSend("I need help getting started.")}
+                className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 hover:text-white hover:border-juice-500 transition-all"
+               >
+                 Get Started
+               </button>
+               <button 
+                 onClick={() => handleSend("Show me the next steps.")}
+                 className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 hover:text-white hover:border-juice-500 transition-all"
+               >
+                 Next Steps
+               </button>
              </div>
-           )}
+            )}
 
            {/* Input Area */}
            <div className="p-3 border-t border-white/5 bg-black/20">

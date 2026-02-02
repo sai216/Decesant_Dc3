@@ -7,6 +7,7 @@ import {
   Fingerprint, Link as LinkIcon, MoveRight, Ban, CheckCircle,
   Presentation, ChevronRight, MessageSquare, UserCheck, Send, CheckCircle2
 } from 'lucide-react';
+import { usePrivy } from '@privy-io/react-auth';
 import { MARKETING_CONFIG } from '../core/marketing.config';
 
 const PhaseIcons = [Target, FileSearch, GraduationCap, BookOpen, Briefcase];
@@ -85,26 +86,26 @@ const PitchSlide = () => (
 );
 
 const Learn2LaunchPathway: React.FC = () => {
-  const [formStep, setFormStep] = useState<'IDENT' | 'TRACKS' | 'VERIFY' | 'SUCCESS'>('IDENT');
+  const { login, user, authenticated } = usePrivy();
+  const [privyLoading, setPrivyLoading] = useState(false);
+  const [formStep, setFormStep] = useState<'EMAIL' | 'IDENT' | 'CLUSTERS' | 'CONTACT' | 'C3' | 'SUCCESS'>('EMAIL');
   const [formData, setFormData] = useState({
+    email: '',
     name: '',
     dob: '',
-    email: '',
-    phone: '',
     loomUrl: '',
-    telegram: '',
+    selectedClusters: [] as string[],
+    whatsappNumber: '',
+    telegramHandle: '',
     isAdult: false,
-    interests: [] as string[],
   });
-  const [otpValue, setOtpValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const [registrationMode, setRegistrationMode] = useState<'IDLE' | 'ELIGIBLE' | 'BLOCKED'>('IDLE');
+  const [isPrivyAuthenticated, setIsPrivyAuthenticated] = useState(false);
 
   const isValidLoom = (url: string) => {
-    const loomRegex = /^(https?:\/\/)?(www\.)?loom\.com\/(share|embed)\/[\w-]+(\?.*)?$/;
-    return loomRegex.test(url.trim());
+    return url.trim().startsWith('https://www.loom.com/share');
   };
 
   const checkEligibility = (dob: string) => {
@@ -117,37 +118,79 @@ const Learn2LaunchPathway: React.FC = () => {
     const dateAt30 = new Date(birthDate.getFullYear() + 30, birthDate.getMonth(), birthDate.getDate());
 
     if (today >= dateAt30) {
-      setRegistrationMode('BLOCKED');
       setFormError("SIGNAL_REJECTED: Age exceeds 30-year eligibility threshold.");
+      return false;
     } else if (today >= nineMonthsBefore18) {
-      setRegistrationMode('ELIGIBLE');
       setFormError(null);
+      return true;
     } else {
-      setRegistrationMode('BLOCKED');
       setFormError("SIGNAL_REJECTED: Temporal gap exceeds 9-month threshold.");
+      return false;
     }
   };
 
-  const handleNextToTracks = () => {
+  const handlePrivyLogin = () => {
+    setIsSubmitting(true);
+    setPrivyLoading(true);
+    setFormError(null);
+    try {
+      // Privy login opens modal - user state will update after successful auth
+      login({ loginMethods: ['email'] });
+    } catch (error) {
+      setFormError("[!] AUTHENTICATION_ERROR: Unable to initiate Privy login.");
+      setIsSubmitting(false);
+      setPrivyLoading(false);
+    }
+  };
+
+  // Monitor Privy user authentication
+  useEffect(() => {
+    if (authenticated && user?.email && isPrivyAuthenticated === false) {
+      // User has successfully authenticated with Privy
+      const emailAddress = user.email.address;
+      setFormData(prev => ({...prev, email: emailAddress}));
+      setIsPrivyAuthenticated(true);
+      setIsSubmitting(false);
+      setPrivyLoading(false);
+      setFormError(null);
+      // Auto-advance to IDENT step
+      setFormStep('IDENT');
+    }
+  }, [authenticated, user, isPrivyAuthenticated]);
+
+  const handleNextToIdentity = () => {
+    // If not authenticated, initiate Privy login
+    if (!isPrivyAuthenticated) {
+      handlePrivyLogin();
+      return;
+    }
+    
+    // Validate email format
+    if (!formData.email.trim()) {
+      setFormError("[!] EMAIL_REQUIRED: Email authentication is mandatory for protocol entry.");
+      return;
+    }
+    
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      setFormError("[!] VALIDATION_ERROR: INVALID_EMAIL_FORMAT. RFC-compliant uplink required.");
+      return;
+    }
+    
+    setFormError(null);
+    setFormStep('IDENT');
+  };
+
+  const handleNextToClusters = () => {
     const missing = [];
     if (!formData.name.trim()) missing.push('NAME_IDENT');
     if (!formData.dob) missing.push('TEMPORAL_SIGNAL');
     
-    if (!formData.email.trim()) {
-      missing.push('UPLINK_EMAIL');
-    } else {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(formData.email)) {
-        setFormError("[!] VALIDATION_ERROR: INVALID_EMAIL_FORMAT. RFC-compliant uplink required.");
-        return;
-      }
-    }
-
     if (!formData.loomUrl.trim()) {
       setFormError("[!] MANDATORY_REQUIREMENT: Loom video URL is MISSING. High-fidelity intent signal required.");
       return;
     } else if (!isValidLoom(formData.loomUrl)) {
-      setFormError("[!] MANDATORY_REQUIREMENT: Loom video URL is INVALID. Supported format: loom.com/share/[ID]");
+      setFormError("[!] MANDATORY_REQUIREMENT: Loom video URL INVALID. Format: https://www.loom.com/share/...");
       return;
     }
 
@@ -158,57 +201,52 @@ const Learn2LaunchPathway: React.FC = () => {
       return;
     }
 
+    const isEligible = checkEligibility(formData.dob);
+    if (!isEligible) return;
+
     setFormError(null);
-    setFormStep('TRACKS');
+    setFormStep('CLUSTERS');
   };
 
-  const toggleInterest = (interest: string) => {
+  const toggleCluster = (cluster: string) => {
     setFormData(prev => ({
       ...prev,
-      interests: prev.interests.includes(interest) 
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
+      selectedClusters: prev.selectedClusters.includes(cluster)
+        ? prev.selectedClusters.filter(c => c !== cluster)
+        : [...prev.selectedClusters, cluster]
     }));
   };
 
-  const handleNextToVerify = () => {
-    if (formData.interests.length === 0) {
-      setFormError("[!] SELECT_AT_LEAST_ONE_TRACK: Technical focus required for node mapping.");
+  const handleNextToContact = () => {
+    if (formData.selectedClusters.length === 0) {
+      setFormError("[!] SELECT_AT_LEAST_ONE_CLUSTER: Technical focus required for node mapping.");
       return;
     }
     setFormError(null);
-    setFormStep('VERIFY');
+    setFormStep('CONTACT');
   };
 
-  const handleTriggerOtp = async () => {
-    setFormError(null);
-    if (!formData.phone.startsWith('+')) {
-      setFormError("[!] E.164_PHONE_REQUIRED: Phone must begin with '+' (International format required).");
+  const handleNextToC3 = () => {
+    const hasWhatsApp = formData.whatsappNumber.trim().startsWith('+');
+    const hasTelegram = formData.telegramHandle.trim().length > 0;
+
+    if (!hasWhatsApp && !hasTelegram) {
+      setFormError("[!] CONTACT_REQUIRED: Either WhatsApp or Telegram handle is mandatory.");
       return;
     }
-    if (formData.phone.length < 8) {
-      setFormError("[!] INVALID_PHONE: Signal length insufficient for WhatsApp handshake.");
+
+    if (hasWhatsApp && formData.whatsappNumber.length < 10) {
+      setFormError("[!] INVALID_PHONE: Signal length insufficient. E.164 format required.");
       return;
     }
-    if (formData.telegram && formData.telegram.includes('@')) {
+
+    if (hasTelegram && formData.telegramHandle.includes('@')) {
       setFormError("[!] TELEGRAM_FORMAT_ERROR: DO NOT INCLUDE '@' SYMBOL. EX: 'username' instead of '@username'");
       return;
     }
 
-    setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setIsSubmitting(false);
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otpValue !== '123456') {
-      setFormError("[!] SIGNAL_MISMATCH: INVALID_OTP. Verification cycle failed.");
-      return;
-    }
-    setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setIsSubmitting(false);
-    setFormStep('SUCCESS');
+    setFormError(null);
+    setFormStep('C3');
   };
 
   return (
@@ -264,6 +302,19 @@ const Learn2LaunchPathway: React.FC = () => {
                     <ShieldCheck size={14} /> Intake_Integrity_Monitor
                   </div>
                   
+                  {formStep === 'EMAIL' && (
+                    <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
+                      <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Email_Authentication</div>
+                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Authenticate via Privy to begin your talent verification journey.</p>
+                      <div className="space-y-4">
+                         <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                           <ShieldCheck size={20} className="text-decensat animate-pulse" />
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Privy_Authentication: {isPrivyAuthenticated ? 'VERIFIED' : 'PENDING'}</span>
+                         </div>
+                      </div>
+                    </div>
+                  )}
+
                   {formStep === 'IDENT' && (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
                       <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Identity_Uplink</div>
@@ -281,10 +332,10 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                  {formStep === 'TRACKS' && (
+                  {formStep === 'CLUSTERS' && (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
                       <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Cluster_Mapping</div>
-                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Select specialized technical vectors for reputation routing.</p>
+                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Select specialized technical clusters for reputation routing.</p>
                       <div className="p-6 bg-decensat/5 border border-decensat/20 rounded-[2rem] space-y-4">
                         <div className="flex items-center gap-3 text-decensat">
                           <Activity size={18} className="animate-pulse" />
@@ -295,13 +346,24 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                  {formStep === 'VERIFY' && (
+                  {formStep === 'CONTACT' && (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
-                      <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Signal_Verification</div>
-                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">WhatsApp OTP handshake required for adult community ingestion.</p>
+                      <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Contact_Verification</div>
+                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Provide WhatsApp or Telegram for community integration.</p>
                       <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
                          <AlertCircle size={20} className="text-amber-500" />
-                         <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Handshake_Timeout: 120s</span>
+                         <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">One Contact Method Required</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {formStep === 'C3' && (
+                    <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
+                      <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">C3_Integration</div>
+                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Finalizing integration with C3 ecosystem...</p>
+                      <div className="flex items-center gap-3 p-4 bg-decensat/10 border border-decensat/30 rounded-2xl">
+                         <Loader2 size={20} className="text-decensat animate-spin" />
+                         <span className="text-[10px] font-black text-decensat uppercase tracking-widest">Connecting to C3 Network</span>
                       </div>
                     </div>
                   )}
@@ -312,6 +374,38 @@ const Learn2LaunchPathway: React.FC = () => {
           <div className="lg:col-span-7 bg-black/60 border-2 border-white/5 rounded-[3rem] p-6 xs:p-8 sm:p-16 lg:p-20 shadow-3xl relative overflow-hidden">
              <div className="absolute inset-0 bg-grid-f4a opacity-5 pointer-events-none" />
              
+             {formStep === 'EMAIL' && (
+               <div className="space-y-8 xs:space-y-12 animate-in fade-in zoom-in-95 duration-700 relative z-10">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Email Address</label>
+                    <div className="relative group">
+                       <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
+                       <input 
+                          type="email" value={formData.email} onChange={e => { setFormData({...formData, email: e.target.value}); setFormError(null); }}
+                          className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-black uppercase outline-none focus:border-decensat/50 transition-all"
+                          placeholder="YOUR_EMAIL@DOMAIN.IO"
+                       />
+                    </div>
+                  </div>
+
+                  {formError && (
+                    <div className="p-4 sm:p-6 bg-rose-500/5 border-2 border-rose-500/20 rounded-2xl flex items-center gap-4 text-rose-500 animate-in slide-in-from-top-2">
+                       <AlertCircle size={20} className="shrink-0" />
+                       <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest leading-relaxed">{formError}</span>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleNextToIdentity}
+                    disabled={isSubmitting || privyLoading}
+                    className="w-full py-6 sm:py-8 bg-decensat text-black font-black uppercase text-xs sm:text-sm tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-6 active:scale-95 transform-gpu disabled:opacity-50"
+                  >
+                    {isSubmitting || privyLoading ? <Loader2 size={24} className="animate-spin" /> : 'AUTHENTICATE_WITH_PRIVY'} 
+                    {!isSubmitting && !privyLoading && <ArrowRight size={24} strokeWidth={3} />}
+                  </button>
+               </div>
+             )}
+
              {formStep === 'IDENT' && (
                <div className="space-y-8 xs:space-y-12 animate-in fade-in zoom-in-95 duration-700 relative z-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 xs:gap-8">
@@ -339,34 +433,21 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 xs:gap-8">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Ingestion_Uplink (Email)</label>
-                      <div className="relative group">
-                         <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
-                         <input 
-                            type="email" value={formData.email} onChange={e => { setFormData({...formData, email: e.target.value}); setFormError(null); }}
-                            className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-black uppercase outline-none focus:border-decensat/50 transition-all"
-                            placeholder="UPLINK@CORPORATE.IO"
-                         />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center px-4">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loom_Identity_Signal</label>
+                      <div className="relative" onMouseEnter={() => setActiveTooltip('LOOM')} onMouseLeave={() => setActiveTooltip(null)}>
+                         <Info size={12} className="text-slate-700 cursor-help hover:text-decensat transition-colors" />
+                         {activeTooltip === 'LOOM' && <Tooltip title="Verification Protocol" content="Must start with: https://www.loom.com/share/" />}
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center px-4">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loom_Identity_Signal</label>
-                        <div className="relative" onMouseEnter={() => setActiveTooltip('LOOM')} onMouseLeave={() => setActiveTooltip(null)}>
-                           <Info size={12} className="text-slate-700 cursor-help hover:text-decensat transition-colors" />
-                           {activeTooltip === 'LOOM' && <Tooltip title="Verification Protocol" content="Institutional policy: Applicants MUST provide a Loom video addressing specific intent vectors (Who/Why/Project/Evidence/Time)." />}
-                        </div>
-                      </div>
-                      <div className="relative group">
-                         <Video className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
-                         <input 
-                            type="url" value={formData.loomUrl} onChange={e => { setFormData({...formData, loomUrl: e.target.value}); setFormError(null); }}
-                            className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all"
-                            placeholder="loom.com/share/..."
-                         />
-                      </div>
+                    <div className="relative group">
+                       <Video className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
+                       <input 
+                          type="url" value={formData.loomUrl} onChange={e => { setFormData({...formData, loomUrl: e.target.value}); setFormError(null); }}
+                          className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all"
+                          placeholder="https://www.loom.com/share/..."
+                       />
                     </div>
                   </div>
 
@@ -393,29 +474,32 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                  <button 
-                    onClick={handleNextToTracks}
-                    className="w-full py-6 sm:py-8 bg-decensat text-black font-black uppercase text-xs sm:text-sm tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-6 active:scale-95 transform-gpu"
-                  >
-                    NEXT_INGESTION_PHASE <ArrowRight size={24} strokeWidth={3} />
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                      <button onClick={() => setFormStep('EMAIL')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Email</button>
+                      <button 
+                        onClick={handleNextToClusters}
+                        className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
+                      >
+                        CONTINUE_TO_CLUSTERS <ArrowRight size={20} strokeWidth={3} />
+                      </button>
+                  </div>
                </div>
              )}
 
-             {formStep === 'TRACKS' && (
+             {formStep === 'CLUSTERS' && (
                 <div className="space-y-12 xs:space-y-16 animate-in slide-in-from-right-8 duration-700 relative z-10">
                    <div className="space-y-6">
                       <div className="flex items-center justify-between px-4">
-                        <label className="text-[11px] sm:text-sm font-black text-white uppercase tracking-[0.4em]">Node_Track_Selection</label>
-                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{formData.interests.length} / 3 SELECTED</span>
+                        <label className="text-[11px] sm:text-sm font-black text-white uppercase tracking-[0.4em]">Cluster_Selection</label>
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{formData.selectedClusters.length} SELECTED</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {MARKETING_CONFIG.L2L.ROLES.map((role) => {
-                          const isSelected = formData.interests.includes(role.id);
+                          const isSelected = formData.selectedClusters.includes(role.id);
                           return (
                             <button
                               key={String(role.id)}
-                              onClick={() => toggleInterest(String(role.id))}
+                              onClick={() => toggleCluster(String(role.id))}
                               className={`p-6 sm:p-8 rounded-[2rem] border-2 text-left transition-all relative overflow-hidden group/role transform-gpu active:scale-95 ${
                                 isSelected 
                                   ? 'bg-decensat border-decensat text-black shadow-glow-sm scale-[1.02]' 
@@ -423,7 +507,7 @@ const Learn2LaunchPathway: React.FC = () => {
                               }`}
                             >
                                <div className="flex justify-between items-start mb-3">
-                                 <span className={`text-[8px] font-black uppercase tracking-widest ${isSelected ? 'text-black/60' : 'text-slate-600'}`}>Track_0{String(role.id).length}</span>
+                                 <span className={`text-[8px] font-black uppercase tracking-widest ${isSelected ? 'text-black/60' : 'text-slate-600'}`}>Cluster_0{String(role.id).length}</span>
                                  {isSelected && <Check size={16} strokeWidth={4} />}
                                </div>
                                <div className="text-xl sm:text-2xl font-black uppercase tracking-tighter leading-none mb-2">{String(role.label)}</div>
@@ -442,18 +526,18 @@ const Learn2LaunchPathway: React.FC = () => {
                   )}
 
                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      <button onClick={() => setFormStep('IDENT')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Ident</button>
+                      <button onClick={() => setFormStep('IDENT')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Identity</button>
                       <button 
-                        onClick={handleNextToVerify}
+                        onClick={handleNextToContact}
                         className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
                       >
-                        SYNC_TRACKS <ArrowRight size={20} strokeWidth={3} />
+                        CONTINUE_TO_CONTACT <ArrowRight size={20} strokeWidth={3} />
                       </button>
                    </div>
                 </div>
              )}
 
-             {formStep === 'VERIFY' && (
+             {formStep === 'CONTACT' && (
                 <div className="space-y-12 xs:space-y-16 animate-in slide-in-from-right-8 duration-700 relative z-10">
                    <div className="space-y-8">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 xs:gap-8">
@@ -462,7 +546,7 @@ const Learn2LaunchPathway: React.FC = () => {
                            <div className="relative group">
                               <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
                               <input 
-                                 type="tel" value={formData.phone} onChange={e => { setFormData({...formData, phone: e.target.value}); setFormError(null); }}
+                                 type="tel" value={formData.whatsappNumber} onChange={e => { setFormData({...formData, whatsappNumber: e.target.value}); setFormError(null); }}
                                  className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all"
                                  placeholder="+1 555 000 0000"
                               />
@@ -473,38 +557,12 @@ const Learn2LaunchPathway: React.FC = () => {
                            <div className="relative group">
                               <MessageSquare className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-decensat transition-colors" size={18} />
                               <input 
-                                 type="text" value={formData.telegram} onChange={e => { setFormData({...formData, telegram: e.target.value}); setFormError(null); }}
+                                 type="text" value={formData.telegramHandle} onChange={e => { setFormData({...formData, telegramHandle: e.target.value}); setFormError(null); }}
                                  className="w-full bg-black border-2 border-white/10 rounded-2xl pl-16 pr-6 py-4 sm:py-6 text-sm text-white font-black uppercase outline-none focus:border-decensat/50 transition-all"
                                  placeholder="USERNAME_NODES"
                               />
                            </div>
                         </div>
-                      </div>
-
-                      <div className="p-8 sm:p-10 bg-white/5 border border-white/10 rounded-[2rem] space-y-8">
-                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Handshake_Sequence</span>
-                            <div className="flex gap-1">
-                               {[1,2,3,4,5,6].map(i => (
-                                 <div key={i} className={`w-3 h-3 rounded-full ${i <= (otpValue.length) ? 'bg-decensat' : 'bg-zinc-800'}`} />
-                               ))}
-                            </div>
-                         </div>
-                         <div className="flex justify-center">
-                            <div className="flex gap-2 sm:gap-4">
-                               {[0,1,2,3,4,5].map(i => (
-                                 <div key={i} className={`w-10 h-14 sm:w-14 sm:h-20 bg-black border-2 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-3xl font-black font-mono transition-all ${otpValue[i] ? 'border-decensat text-decensat' : 'border-white/5 text-slate-800'}`}>
-                                    {otpValue[i] || '•'}
-                                 </div>
-                               ))}
-                            </div>
-                         </div>
-                         <input 
-                           type="text" maxLength={6} value={otpValue} 
-                           onChange={e => { setOtpValue(e.target.value); setFormError(null); }}
-                           className="absolute inset-0 opacity-0 cursor-pointer"
-                           autoFocus
-                         />
                       </div>
                    </div>
 
@@ -516,43 +574,40 @@ const Learn2LaunchPathway: React.FC = () => {
                   )}
 
                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      <button onClick={() => setFormStep('TRACKS')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Mapping</button>
+                      <button onClick={() => setFormStep('CLUSTERS')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Clusters</button>
                       <button 
-                        onClick={otpValue.length === 6 ? handleVerifyOtp : handleTriggerOtp}
+                        onClick={handleNextToC3}
                         disabled={isSubmitting}
                         className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
                       >
-                        {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : <Lock size={20} />}
-                        {otpValue.length === 6 ? 'VERIFY_SIGNAL' : 'TRIGGER_HANDSHAKE'}
+                        {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : 'INITIATE_C3'} 
+                        {!isSubmitting && <ArrowRight size={20} strokeWidth={3} />}
                       </button>
                    </div>
                 </div>
              )}
 
-             {formStep === 'SUCCESS' && (
+             {formStep === 'C3' && (
                <div className="py-12 xs:py-20 text-center space-y-8 sm:space-y-12 animate-in zoom-in-95 duration-1000 relative z-10 h-full flex flex-col justify-center">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-decensat rounded-[2.5rem] sm:rounded-[3rem] flex items-center justify-center text-black mx-auto shadow-glow-md border-[6px] border-white/10 relative animate-success-ring">
-                    <Check size={48} strokeWidth={4} className="animate-checkmark-success sm:size-[64px]" />
-                    <div className="absolute -top-3 -right-3 w-10 h-10 sm:w-12 sm:h-12 bg-black rounded-full flex items-center justify-center border-2 border-white/10">
-                      <ShieldCheck size={20} className="text-decensat animate-pulse sm:size-[24px]" />
-                    </div>
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-decensat rounded-[2.5rem] sm:rounded-[3rem] flex items-center justify-center text-black mx-auto shadow-glow-md border-[6px] border-white/10 animate-pulse">
+                    <Sparkles size={48} strokeWidth={3} className="sm:size-[64px]" />
                   </div>
                   <div className="space-y-6">
-                    <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-4">
-                       <Sparkles size={12} className="animate-pulse" /> PROTOCOL_FINALIZED
+                    <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-4 animate-pulse">
+                       <Rocket size={12} /> C3_INTEGRATION_ACTIVE
                     </div>
-                    <h3 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-tight italic">
-                      Uplink <br/><span className="text-decensat not-italic underline decoration-white/10 underline-offset-8 sm:underline-offset-12">ESTABLISHED.</span>
+                    <h3 className="text-2xl sm:text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-tight italic">
+                      Connecting to <br/><span className="text-decensat not-italic underline decoration-white/10 underline-offset-4 sm:underline-offset-8">C3 Network</span>
                     </h3>
-                    <p className="text-lg sm:text-2xl text-slate-500 font-bold max-w-lg mx-auto leading-relaxed uppercase tracking-tight">
-                      Your audit sequence is active. Deterministic routing initialized for <span className="text-white">NODE_{formData.name.split(' ').join('_').toUpperCase()}</span>.
+                    <p className="text-sm sm:text-xl text-slate-500 font-bold max-w-lg mx-auto leading-relaxed uppercase tracking-tight">
+                      C3 page integration is under development. Your data has been securely registered.
                     </p>
                   </div>
                   <button 
-                    onClick={() => setFormStep('IDENT')}
+                    onClick={() => setFormStep('EMAIL')}
                     className="px-12 sm:px-20 py-5 sm:py-8 bg-white text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.5em] rounded-[2rem] hover:bg-decensat transition-all shadow-2xl active:scale-95 self-center"
                   >
-                    ENTER_CONSOLE_GRID
+                    RESTART_PROTOCOL
                   </button>
                </div>
              )}

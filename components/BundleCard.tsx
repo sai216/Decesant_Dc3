@@ -12,9 +12,10 @@ interface BundleCardProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   onAddToCart?: () => void;
+  onLearnMore?: () => void;
 }
 
-const BundleCard: React.FC<BundleCardProps> = ({ bundle, isSelected, onAddToCart }) => {
+const BundleCard: React.FC<BundleCardProps> = ({ bundle, isSelected, onAddToCart, onLearnMore }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [showPricingTooltip, setShowPricingTooltip] = useState(false);
 
@@ -122,26 +123,33 @@ const BundleCard: React.FC<BundleCardProps> = ({ bundle, isSelected, onAddToCart
 
         {/* Terminal Action Area */}
         <div className="mt-auto pt-5 border-t border-white/5 flex flex-col sm:flex-row gap-3">
-           <button 
-             onClick={handleInitialize}
-             disabled={isSyncing}
-             className={`flex-1 h-[56px] rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 group/btn active:scale-95 shadow-glow-md relative overflow-hidden ${
-               isSyncing ? 'bg-zinc-900 text-decensat cursor-wait grayscale' : 'bg-decensat text-black hover:bg-white'
-             }`}
-           >
-              {isSyncing ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  SYNCING_PROTOCOL...
-                </>
-              ) : (
-                <>
-                  <Rocket size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                  INITIALIZE_A2A_UPLINK
-                  <ArrowUpRight size={16} className="opacity-30" />
-                </>
-              )}
-           </button>
+          <button
+            onClick={onLearnMore}
+            className="flex-1 h-[56px] rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 active:scale-95 bg-white/10 text-white hover:bg-white/20"
+          >
+            LEARN MORE
+            <ArrowUpRight size={16} className="opacity-50" />
+          </button>
+          <button 
+            onClick={handleInitialize}
+            disabled={isSyncing}
+            className={`flex-1 h-[56px] rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 group/btn active:scale-95 shadow-glow-md relative overflow-hidden ${
+              isSyncing ? 'bg-zinc-900 text-decensat cursor-wait grayscale' : 'bg-decensat text-black hover:bg-white'
+            }`}
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                SYNCING_PROTOCOL...
+              </>
+            ) : (
+              <>
+                <Rocket size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                BOOK A CALL
+                <ArrowUpRight size={16} className="opacity-30" />
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

@@ -1,0 +1,16 @@
+NEW START AUDIT FLOW - IMPLEMENTATION COMPLETE
+
+Flow Steps:
+1. audit_protocol - Introduction and "Begin Assessment" button (renamed from "Initiate Handshake")
+2. goals_and_video - What are your goals? + Loom/Video link + File uploads
+3. privy_auth - Privy authentication (Email/Gmail)
+4. linkedin_phone_validation - LinkedIn URL + Phone Number validation
+5. account_activation - Account activation confirmation
+6. google_meet_booking - Google Meet booking with date/time selection
+7. confirmation_email - Email confirmation sent to user and admin
+8. chat_box - Live chat interface
+
+OLD FLOW (COMMENTED OUT):
+- initiation, intent, materials, identity, verification, privy_handshake, scheduling, summary
+
+ALL OLD CODE PRESERVED BUT COMMENTED OUT IN THE FILE

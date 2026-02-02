@@ -7,7 +7,6 @@ import {
   ShieldCheck, 
   Terminal, 
   Zap,
-  ArrowRight,
   Target,
   Globe,
   Activity,
@@ -23,15 +22,13 @@ interface AdminSidebarProps {
   activeId: string;
   onClose: () => void;
   user: UserProfile | null;
-  onOpenConsole: () => void;
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
   onNavigate, 
   activeId, 
   onClose, 
-  user, 
-  onOpenConsole 
+  user
 }) => {
   const isReturningVerified = user && (user.authStage >= AuthStage.PrivyHandshakeComplete);
   const isC3Authorized = user && (user.authStage >= AuthStage.ProjectEngaged);
@@ -111,20 +108,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       <div className="mt-auto pt-6 sm:pt-10 border-t border-white/5 relative z-10">
         {user ? (
-          <button 
-            onClick={onOpenConsole}
-            className="w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-[1.8rem] sm:rounded-[2.5rem] hover:border-decensat transition-all group relative overflow-hidden shadow-2xl"
-          >
-            <div className="absolute inset-0 bg-decensat/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-decensat/10 flex items-center justify-center text-decensat border border-decensat/30 shrink-0 relative z-10 shadow-glow-sm">
+          <div className="w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-[1.8rem] sm:rounded-[2.5rem] shadow-2xl">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-decensat/10 flex items-center justify-center text-decensat border border-decensat/30 shrink-0 shadow-glow-sm">
               <User size={20} className="sm:size-[24px]" />
             </div>
-            <div className="text-left min-w-0 relative z-10 flex-1">
+            <div className="text-left min-w-0 flex-1">
               <div className="text-[10px] sm:text-[12px] text-white font-black uppercase truncate tracking-tight">{user.email.split('@')[0]}</div>
               <div className="text-[7px] sm:text-[9px] text-decensat font-mono font-black uppercase tracking-widest mt-1">SRT_{user.srt} // {isC3Authorized ? 'C3_ACTIVE' : (isReturningVerified ? 'VERIFIED' : 'GATED')}</div>
             </div>
-            <ArrowRight size={16} className="sm:size-[20px] text-slate-700 group-hover:text-decensat group-hover:translate-x-1 transition-all relative z-10" />
-          </button>
+          </div>
         ) : (
           <button 
             onClick={() => onNavigate('project-assessment')}

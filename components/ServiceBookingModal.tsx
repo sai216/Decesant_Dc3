@@ -5,9 +5,11 @@ import {
   Sparkles, Coins, Landmark, Globe, Database, Bot, Wallet, CreditCard, 
   Smartphone as ApplePayIcon, Zap, Fingerprint, Package, Link as LinkIcon,
   ChevronRight, ArrowUpRight, Shield, Key, ExternalLink, Smartphone, UserCheck,
-  CreditCard as CardIcon, Apple as AppleIcon, Smartphone as GoogleIcon
+  CreditCard as CardIcon, Apple as AppleIcon, Upload,
+  Phone, Mail, Chrome
 } from 'lucide-react';
 import { normalizePhone, isValidE164 } from '../core/validation';
+import { usePrivy } from '@privy-io/react-auth';
 
 /**
  * STRIPE_API_DEVELOPER_IMPLEMENTATION_NOTE:
@@ -18,7 +20,7 @@ import { normalizePhone, isValidE164 } from '../core/validation';
  * 3. Use confirmPayment() from @stripe/react-stripe-js.
  */
 
-type BookingStep = 'confirmation' | 'privy_auth' | 'phone_ident' | 'otp_verify' | 'checkout' | 'scheduling' | 'success';
+type BookingStep = 'confirmation' | 'email_auth' | 'manifest_composition' | 'auth_identity' | 'google_meet' | 'phone_ident' | 'otp_verify' | 'checkout' | 'scheduling' | 'success';
 
 interface ServiceBookingModalProps {
   item: { id: string, name: string, title?: string, price?: number, isByo?: boolean };
@@ -73,15 +75,32 @@ const ReownIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose, initialStep = 'confirmation' }) => {
-  const [currentStep, setCurrentStep] = useState<BookingStep>(initialStep);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [handshakeConfirmed, setHandshakeConfirmed] = useState(false);
-  const [selectedUcpRail, setSelectedUcpRail] = useState<string>('privy');
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ onClose }) => {
+  useEffect(() => {
+    const section = document.getElementById('project-assessment');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.dispatchEvent(new CustomEvent('start-audit-protocol'));
+    onClose();
+  }, [onClose]);
+
+  return null;
+  
+  /*
+  // Manifest Composition Form State
+  const [manifestData, setManifestData] = useState({
+    loomUrl: '',
+    docsUrl: '',
+    uploadedFiles: [] as File[]
+  });
+
+  // Auth Identity Form State
+  const [authIdentityData, setAuthIdentityData] = useState({
+    linkedinUrl: '',
+    businessEmail: '',
+    whatsappNumber: ''
+  });
   
   // Stripe-specific logic states for developers
   const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '' });
@@ -99,8 +118,49 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
     await new Promise(r => setTimeout(r, 2000));
     setWalletAddress(`0x${Math.random().toString(16).slice(2, 10)}...${walletId.slice(0, 4)}`);
     setIsSyncing(false);
-    setCurrentStep('checkout');
+    setCurrentStep('manifest_composition');
   };
+
+  const handleAuthMethodSelect = async (method: 'email' | 'sms' | 'google') => {
+    setAuthMethod(method);
+    setIsSyncing(true);
+    setErrors({});
+    
+    try {
+      await login({
+        loginMethods: [method],
+      });
+      
+      // Authentication handled by Privy - success will be caught by useEffect
+    } catch (error) {
+      console.error('Authentication failed:', error);
+      setErrors({ auth: 'Authentication failed. Please try again.' });
+      setAuthMethod(null);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleEmailSubmit = async () => {
+    // This is now handled by Privy's built-in modal
+    // No need for custom implementation
+    await handleAuthMethodSelect(authMethod as 'email' | 'sms');
+  };
+
+  // Auto-advance when user is authenticated
+  useEffect(() => {
+    if (authenticated && user && currentStep === 'email_auth') {
+      const userIdentifier = 
+        user.email?.address || 
+        user.phone?.number || 
+        user.google?.email || 
+        user.id;
+      
+      setWalletAddress(userIdentifier);
+      setAuthMethod(null);
+      setCurrentStep('manifest_composition');
+    }
+  }, [authenticated, user, currentStep]);
 
   const handlePhoneSubmit = async () => {
     if (!isValidE164(phone)) {
@@ -127,7 +187,7 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
     setIsSyncing(true);
     await new Promise(r => setTimeout(r, 1500));
     setIsSyncing(false);
-    setCurrentStep('scheduling');
+    setCurrentStep('google_meet');
   };
 
   const handleExecuteCheckout = async () => {
@@ -168,9 +228,56 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
       if (isByo) {
         setCurrentStep('phone_ident');
       } else {
-        setCurrentStep('privy_auth');
+        setCurrentStep('email_auth');
       }
     }
+  };
+
+  const handleManifestSubmit = async () => {
+    if (!manifestData.loomUrl || !manifestData.docsUrl) {
+      setErrors({ manifest: 'UPLINK_ERROR: Loom and Docs fields required.' });
+      return;
+    }
+    setIsSyncing(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setIsSyncing(false);
+    setCurrentStep('auth_identity');
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(f => f.size <= 25 * 1024 * 1024); // 25MB limit
+    setManifestData({ ...manifestData, uploadedFiles: [...manifestData.uploadedFiles, ...validFiles] });
+  };
+
+  const removeFile = (index: number) => {
+    setManifestData({
+      ...manifestData,
+      uploadedFiles: manifestData.uploadedFiles.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleAuthIdentitySubmit = async () => {
+    if (!authIdentityData.linkedinUrl || !authIdentityData.businessEmail || !authIdentityData.whatsappNumber) {
+      setErrors({ identity: 'UPLINK_ERROR: All fields required.' });
+      return;
+    }
+    if (!isValidE164(authIdentityData.whatsappNumber)) {
+      setErrors({ identity: 'UPLINK_ERROR: Invalid WhatsApp number format.' });
+      return;
+    }
+    setIsSyncing(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setPhone(authIdentityData.whatsappNumber);
+    setIsSyncing(false);
+    setCurrentStep('otp_verify');
+  };
+
+  const handleGoogleMeetSchedule = async () => {
+    setIsSyncing(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setIsSyncing(false);
+    setCurrentStep('success');
   };
 
   return (
@@ -205,15 +312,15 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
             <div className="min-h-full flex flex-col justify-center items-center py-10 px-6 sm:px-10 animate-in fade-in zoom-in-95 duration-1000 max-w-4xl mx-auto">
                <div className="space-y-8 sm:space-y-12 text-center w-full">
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[8px] sm:text-[10px] font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] shadow-[0_0_30px_rgba(163,230,53,0.15)] mx-auto">
-                     <Lock size={12} className="animate-pulse" /> PROTOCOL_INIT
+                    <Lock size={12} className="animate-pulse" /> CONFIRMATION
                   </div>
                   
                   <div className="space-y-4 sm:space-y-6">
                     <h3 className="text-3xl xs:text-4xl sm:text-7xl font-black text-white uppercase tracking-tighter leading-none italic">
-                      INITIATE <span className="text-decensat not-italic underline decoration-white/10 underline-offset-8 sm:underline-offset-12">SETTLEMENT</span>
+                      CONFIRM <span className="text-decensat not-italic underline decoration-white/10 underline-offset-8 sm:underline-offset-12">DETAILS</span>
                     </h3>
                     <p className="text-slate-400 text-xs xs:text-sm sm:text-2xl font-bold leading-relaxed uppercase tracking-tight italic max-w-2xl mx-auto text-center border-l-2 xs:border-l-0 border-decensat/30 pl-4 xs:pl-0">
-                      ACKNOWLEDGE THE CAPITAL ALLOCATION PROTOCOL FOR {itemName.toUpperCase()}. FINALITY IS DETERMINISTIC VIA USDC DRAW.
+                      Please review and confirm your request for {itemName.toUpperCase()} so we can proceed.
                     </p>
                   </div>
 
@@ -226,9 +333,9 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 sm:border-4 border-white/10 bg-black text-decensat focus:ring-decensat cursor-pointer appearance-none checked:bg-decensat transition-all relative after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-white checked:after:content-['✓'] after:font-black after:text-lg sm:text-2xl shrink-0 z-10"
                      />
                      <div className="flex-1 text-left relative z-10">
-                       <p className="text-[10px] sm:text-sm text-slate-300 font-bold uppercase leading-relaxed tracking-tight group-hover:text-white transition-colors italic">
-                           I acknowledge the {isByo ? 'strategy triage' : 'settlement'} protocol and commit to the digital {isByo ? 'identity' : 'currency'} handshake.
-                       </p>
+                         <p className="text-[10px] sm:text-sm text-slate-300 font-bold uppercase leading-relaxed tracking-tight group-hover:text-white transition-colors italic">
+                           I confirm these details and agree to proceed with the request.
+                         </p>
                      </div>
                   </label>
 
@@ -239,48 +346,319 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
                       handshakeConfirmed ? 'bg-decensat text-black hover:bg-white' : 'bg-zinc-800 text-slate-700 cursor-not-allowed opacity-50'
                     }`}
                   >
-                    {isByo ? 'VERIFY_IDENTITY' : 'CONNECT_WALLETS'} <ArrowRight size={20} strokeWidth={4} />
+                    {isByo ? 'VERIFY_IDENTITY' : 'CONTINUE'} <ArrowRight size={20} strokeWidth={4} />
                   </button>
                </div>
             </div>
           )}
 
-          {currentStep === 'privy_auth' && (
+          {currentStep === 'email_auth' && (
             <div className="min-h-full flex flex-col justify-center py-10 px-6 sm:px-10 animate-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto">
               <div className="text-center space-y-4 sm:space-y-6 mb-8 sm:mb-12">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl sm:rounded-[2.5rem] mx-auto flex items-center justify-center text-black shadow-glow-md relative overflow-hidden group">
-                  <Fingerprint size={40} className={`text-decensat ${isSyncing ? 'animate-pulse' : ''}`} />
+                  <Lock size={40} className={`text-decensat ${isSyncing ? 'animate-pulse' : ''}`} />
                   {isSyncing && <div className="absolute inset-0 bg-decensat/10 animate-scan" />}
                 </div>
-                <h3 className="text-2xl sm:text-5xl font-black text-white uppercase tracking-tighter italic">Privy <span className="text-decensat">Mesh_Sync</span></h3>
-                <p className="text-[8px] sm:text-[10px] text-slate-500 font-black uppercase tracking-[0.4em]">SELECT_DEFI_UPLINK_NODE</p>
+                <h3 className="text-2xl sm:text-5xl font-black text-white uppercase tracking-tighter italic">Authentication <span className="text-decensat">Gateway</span></h3>
+                <p className="text-[8px] sm:text-[10px] text-slate-500 font-black uppercase tracking-[0.4em]">SELECT_AUTH_METHOD</p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
-                {WALLET_PROVIDERS.map(wallet => (
+              {!authMethod ? (
+                <div className="grid gap-3 sm:gap-4 mb-8 sm:mb-10 max-w-2xl mx-auto w-full">
+                  {/* Email Option */}
                   <button
-                    key={wallet.id}
-                    onClick={() => handlePrivyConnect(wallet.id)}
+                    onClick={() => handleAuthMethodSelect('email')}
                     disabled={isSyncing}
-                    className="p-4 sm:p-6 bg-black border-2 border-white/5 rounded-xl sm:rounded-[2rem] border-white/10 flex flex-col items-center gap-3 sm:gap-4 hover:border-decensat/40 hover:bg-decensat/5 transition-all group active:scale-95 disabled:opacity-50"
+                    className="p-5 sm:p-7 bg-black border-2 border-white/10 rounded-xl sm:rounded-[2rem] flex flex-col items-center gap-4 sm:gap-5 hover:border-decensat/40 hover:bg-decensat/5 transition-all group active:scale-95 disabled:opacity-50"
                   >
-                    <div className={`text-3xl sm:text-4xl group-hover:scale-110 transition-transform ${isSyncing && 'animate-bounce'}`}>
-                      {wallet.icon}
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-decensat/10 rounded-xl sm:rounded-[1.5rem] flex items-center justify-center text-decensat border border-decensat/20 group-hover:border-decensat/40 transition-all">
+                      <Mail size={24} className="sm:size-[32px]" />
                     </div>
                     <div className="text-center">
-                      <div className="text-[10px] sm:text-xs font-black text-white uppercase tracking-widest">{wallet.name}</div>
-                      <div className={`text-[6px] sm:text-[7px] font-mono font-black mt-1 uppercase ${wallet.color}`}>Protocol_Sync</div>
+                      <div className="text-sm sm:text-lg font-black text-white uppercase tracking-tight">Email</div>
+                      <div className="text-[8px] sm:text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Sign in with email</div>
                     </div>
                   </button>
-                ))}
+
+                  {/* SMS Option */}
+                  <button
+                    onClick={() => handleAuthMethodSelect('sms')}
+                    disabled={isSyncing}
+                    className="p-5 sm:p-7 bg-black border-2 border-white/10 rounded-xl sm:rounded-[2rem] flex flex-col items-center gap-4 sm:gap-5 hover:border-decensat/40 hover:bg-decensat/5 transition-all group active:scale-95 disabled:opacity-50"
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-decensat/10 rounded-xl sm:rounded-[1.5rem] flex items-center justify-center text-decensat border border-decensat/20 group-hover:border-decensat/40 transition-all">
+                      <Smartphone size={24} className="sm:size-[32px]" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm sm:text-lg font-black text-white uppercase tracking-tight">SMS</div>
+                      <div className="text-[8px] sm:text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Verify with SMS</div>
+                    </div>
+                  </button>
+
+                  {/* Google Option */}
+                  <button
+                    onClick={() => handleAuthMethodSelect('google')}
+                    disabled={isSyncing}
+                    className="p-5 sm:p-7 bg-black border-2 border-white/10 rounded-xl sm:rounded-[2rem] flex flex-col items-center gap-4 sm:gap-5 hover:border-decensat/40 hover:bg-decensat/5 transition-all group active:scale-95 disabled:opacity-50"
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-decensat/10 rounded-xl sm:rounded-[1.5rem] flex items-center justify-center text-decensat border border-decensat/20 group-hover:border-decensat/40 transition-all">
+                      <Chrome size={24} className="sm:size-[32px]" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm sm:text-lg font-black text-white uppercase tracking-tight">Google</div>
+                      <div className="text-[8px] sm:text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Sign in with Google</div>
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="max-w-2xl mx-auto w-full">
+                  {(authMethod === 'email' || authMethod === 'sms') && (
+                    <div className="space-y-4 sm:space-y-6">
+                      <div className="space-y-2 sm:space-y-3">
+                        <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                          {authMethod === 'email' ? <Mail size={12} className="text-decensat" /> : <Phone size={12} className="text-decensat" />}
+                          {authMethod === 'email' ? 'Email Address' : 'Phone Number'}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={authMethod === 'email' ? 'email' : 'tel'}
+                            placeholder={authMethod === 'email' ? 'your@email.com' : '+1 (555) 000-0000'}
+                            value={authEmail}
+                            onChange={(e) => {
+                              if (authMethod === 'sms') {
+                                setAuthEmail(normalizePhone(e.target.value));
+                              } else {
+                                setAuthEmail(e.target.value);
+                              }
+                            }}
+                            className="w-full bg-black border-2 border-white/10 rounded-xl px-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleEmailSubmit}
+                        disabled={isSyncing || !authEmail}
+                        className="w-full py-5 sm:py-6 bg-decensat text-black rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-[0.4em] shadow-glow-md hover:bg-white active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isSyncing ? <Loader2 className="animate-spin" size={14} /> : <>AUTHENTICATE <ArrowRight size={14} /></>}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {currentStep === 'manifest_composition' && (
+            <div className="min-h-full flex flex-col justify-center py-10 px-6 sm:px-10 animate-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto">
+              <div className="space-y-3 sm:space-y-4 text-center mb-8 sm:mb-12">
+                <h3 className="text-2xl sm:text-5xl font-black text-white uppercase tracking-tighter italic">Manifest <span className="text-decensat">Composition</span></h3>
+                <p className="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-widest leading-relaxed">
+                  Define project requirements and technical artifacts.
+                </p>
               </div>
 
-              <button 
-                onClick={() => setCurrentStep('checkout')}
-                className="w-full py-4 border-t border-white/5 text-[9px] sm:text-[10px] font-black text-white uppercase tracking-[0.4em] hover:text-decensat transition-all flex items-center justify-center gap-2 group"
-              >
-                SKIP_TO_INSTITUTIONAL_SETTLEMENT <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+              <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto w-full">
+                {/* Loom Signal */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <Sparkles size={12} className="text-decensat" /> Loom Signal
+                  </label>
+                  <input 
+                    type="text"
+                    placeholder="loom.com/share/..."
+                    value={manifestData.loomUrl}
+                    onChange={(e) => setManifestData({ ...manifestData, loomUrl: e.target.value })}
+                    className="w-full bg-black border-2 border-white/10 rounded-xl px-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                  />
+                </div>
+
+                {/* Docs Sync */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <LinkIcon size={12} className="text-decensat" /> Docs Sync
+                  </label>
+                  <input 
+                    type="text"
+                    placeholder="Figma / Docs / Notion..."
+                    value={manifestData.docsUrl}
+                    onChange={(e) => setManifestData({ ...manifestData, docsUrl: e.target.value })}
+                    className="w-full bg-black border-2 border-white/10 rounded-xl px-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                  />
+                </div>
+
+                {/* Ingestion Rail - File Upload */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <Upload size={12} className="text-decensat" /> Ingestion Rail
+                  </label>
+                  <input 
+                    type="file" 
+                    id="file-upload" 
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt,.md,.zip"
+                  />
+                  <label 
+                    htmlFor="file-upload"
+                    className="w-full bg-black border-2 border-white/10 border-dashed rounded-xl px-5 py-8 text-center flex flex-col items-center justify-center cursor-pointer hover:border-decensat/40 hover:bg-decensat/5 transition-all min-h-[120px]"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <Package className="w-6 h-6 text-slate-600" />
+                      <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Submit Docs (Max 25MB Each)
+                      </p>
+                      <p className="text-[7px] text-slate-600 font-bold uppercase tracking-wide">
+                        PDF, DOC, TXT, MD, ZIP
+                      </p>
+                    </div>
+                  </label>
+                  {manifestData.uploadedFiles.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      {manifestData.uploadedFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-decensat/5 border border-decensat/20 rounded-lg px-4 py-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <Package size={12} className="text-decensat shrink-0" />
+                            <span className="text-[9px] font-bold text-white uppercase tracking-wide truncate">{file.name}</span>
+                            <span className="text-[7px] text-slate-500 font-mono shrink-0">({(file.size / 1024).toFixed(1)}KB)</span>
+                          </div>
+                          <button 
+                            onClick={() => removeFile(idx)}
+                            className="text-rose-400 hover:text-rose-300 p-1 shrink-0"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {errors.manifest && <p className="text-rose-500 text-[8px] sm:text-[9px] font-black uppercase mt-3 text-center">{errors.manifest}</p>}
+
+                <button 
+                  onClick={handleManifestSubmit}
+                  disabled={isSyncing}
+                  className="w-full py-5 sm:py-6 bg-decensat text-black rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-[0.4em] shadow-glow-md hover:bg-white active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {isSyncing ? <Loader2 className="animate-spin" size={14} /> : <>PROCEED_COMPOSITION <ArrowRight size={14} /></>}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'auth_identity' && (
+            <div className="min-h-full flex flex-col justify-center py-10 px-6 sm:px-10 animate-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto">
+              <div className="space-y-3 sm:space-y-4 text-center mb-8 sm:mb-12">
+                <h3 className="text-2xl sm:text-5xl font-black text-white uppercase tracking-tighter italic">Auth <span className="text-decensat">Identity</span></h3>
+                <p className="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-widest leading-relaxed">
+                  Establish secure communication rail.
+                </p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto w-full">
+                {/* LinkedIn */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <LinkIcon size={12} className="text-blue-500" /> LinkedIn URL
+                  </label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={14} />
+                    <input 
+                      type="url"
+                      placeholder="linkedin.com/in/..."
+                      value={authIdentityData.linkedinUrl}
+                      onChange={(e) => setAuthIdentityData({ ...authIdentityData, linkedinUrl: e.target.value })}
+                      className="w-full bg-black border-2 border-white/10 rounded-xl pl-11 pr-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                    />
+                  </div>
+                </div>
+
+                {/* Business Email */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <Mail size={12} className="text-lime-400" /> Business Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={14} />
+                    <input 
+                      type="email"
+                      placeholder="uplink@node.io"
+                      value={authIdentityData.businessEmail}
+                      onChange={(e) => setAuthIdentityData({ ...authIdentityData, businessEmail: e.target.value })}
+                      className="w-full bg-black border-2 border-white/10 rounded-xl pl-11 pr-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                    />
+                  </div>
+                </div>
+
+                {/* WhatsApp Number */}
+                <div className="space-y-2 sm:space-y-3">
+                  <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-2">
+                    <Smartphone size={12} className="text-green-500" /> WhatsApp Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={14} />
+                    <input 
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      value={authIdentityData.whatsappNumber}
+                      onChange={(e) => setAuthIdentityData({ ...authIdentityData, whatsappNumber: normalizePhone(e.target.value) })}
+                      className="w-full bg-black border-2 border-white/10 rounded-xl pl-11 pr-5 py-4 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                    />
+                  </div>
+                </div>
+
+                {errors.identity && <p className="text-rose-500 text-[8px] sm:text-[9px] font-black uppercase mt-3 text-center">{errors.identity}</p>}
+
+                <button 
+                  onClick={handleAuthIdentitySubmit}
+                  disabled={isSyncing}
+                  className="w-full py-5 sm:py-6 bg-decensat text-black rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-[0.4em] shadow-glow-md hover:bg-white active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {isSyncing ? <Loader2 className="animate-spin" size={14} /> : <>VERIFY_IDENTITY <ArrowRight size={14} /></>}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'google_meet' && (
+            <div className="min-h-full flex flex-col justify-center py-10 px-6 sm:px-10 animate-in slide-in-from-right-4 duration-500 max-w-2xl mx-auto text-center">
+              <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-12">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-500/10 rounded-2xl sm:rounded-[2.5rem] border-2 border-blue-500/30 flex items-center justify-center mx-auto text-blue-500 shadow-lg">
+                  <Video size={32} className="sm:size-[40px]" />
+                </div>
+                <div>
+                  <h3 className="text-2xl sm:text-5xl font-black text-white uppercase tracking-tighter italic mb-3">Schedule <span className="text-decensat">Google Meet</span></h3>
+                  <p className="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                    Select your preferred time for our strategy sync
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6 max-w-xl mx-auto w-full">
+                <div className="relative group">
+                  <Calendar className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-700 pointer-events-none group-focus-within:text-decensat transition-colors" size={18} />
+                  <input 
+                    type="datetime-local" 
+                    className="w-full bg-black border-2 border-white/10 rounded-xl px-5 py-4 pl-12 sm:pl-14 text-xs sm:text-sm text-white font-mono focus:border-decensat/50 outline-none transition-all hover:bg-white/5"
+                  />
+                </div>
+
+                <div className="bg-decensat/5 border border-decensat/20 rounded-xl p-4 sm:p-6">
+                  <p className="text-[8px] sm:text-[9px] text-slate-300 font-bold uppercase tracking-widest leading-relaxed">
+                    ⓘ We'll send you a Google Meet link 30 minutes before your scheduled time
+                  </p>
+                </div>
+
+                <button 
+                  onClick={handleGoogleMeetSchedule}
+                  disabled={isSyncing}
+                  className="w-full py-5 sm:py-6 bg-decensat text-black rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-[0.4em] shadow-glow-md hover:bg-white active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {isSyncing ? <Loader2 className="animate-spin" size={14} /> : <>CONFIRM_STRATEGY_SYNC <Check size={14} /></>}
+                </button>
+              </div>
             </div>
           )}
 
@@ -317,13 +695,13 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
 
           {currentStep === 'otp_verify' && (
             <div className="min-h-full flex flex-col justify-center py-10 px-6 sm:px-10 animate-in slide-in-from-right-4 duration-500 max-w-md mx-auto text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-500/10 rounded-2xl sm:rounded-[2.5rem] border-2 border-blue-500/30 flex items-center justify-center mx-auto text-blue-500 mb-8 sm:mb-12">
-                <Key size={28} />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/10 rounded-2xl sm:rounded-[2.5rem] border-2 border-green-500/30 flex items-center justify-center mx-auto text-green-500 mb-8 sm:mb-12">
+                <Smartphone size={28} />
               </div>
               <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
-                <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter italic">Verify <span className="text-blue-500">Signal</span></h3>
+                <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter italic">WhatsApp <span className="text-green-500">Verification</span></h3>
                 <p className="text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-widest leading-relaxed">
-                  Enter the 6-digit cryptographic key transmitted to your device.
+                  Enter the 6-digit code sent to {phone}
                 </p>
               </div>
               <div className="flex gap-1.5 sm:gap-2 justify-center mb-8 sm:mb-10">
@@ -574,7 +952,7 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
           </div>
           
           <div className="flex flex-col xs:flex-row items-center sm:items-end gap-4 sm:gap-10 w-full sm:w-auto">
-             <div className="flex flex-col items-center sm:items-end text-center sm:text-right hidden xs:flex">
+             <div className="hidden xs:flex flex-col items-center sm:items-end text-center sm:text-right">
                 <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1.5">GOOGLE UNIVERSAL COMMERCE PROTOCOL</span>
                 <span className="text-[6px] sm:text-[8px] font-mono text-slate-500 uppercase font-bold tracking-widest">STITCH_NODE: {item.id.toUpperCase()} // v1.4</span>
              </div>
@@ -602,4 +980,5 @@ const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({ item, onClose
   );
 };
 
+  */
 export default ServiceBookingModal;
