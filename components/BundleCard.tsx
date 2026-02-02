@@ -88,7 +88,7 @@ const BundleCard: React.FC<BundleCardProps> = ({ bundle, isSelected, onAddToCart
                   <div className="absolute left-8 top-1/2 -translate-y-1/2 w-64 bg-gradient-to-b from-black/98 to-black border border-decensat/70 rounded-xl p-4 text-white shadow-2xl shadow-decensat/30 z-50 backdrop-blur-md pointer-events-none">
                     <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-decensat/70 rotate-45" />
                     <span className="text-decensat font-black uppercase text-[7px] block mb-2 tracking-wider italic">Initial engagement</span>
-                    <p className="text-[10px] font-medium leading-relaxed text-white font-bold italic">
+                    <p className="text-[10px] font-bold leading-relaxed text-white italic">
                       Monthly execution → Creative, Brand, SEO & Content Strategy & Development
                     </p>
                   </div>
