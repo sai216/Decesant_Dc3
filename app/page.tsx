@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import AdminSidebar from '@/components/AdminSidebar';
 import Hero from '@/components/Hero';
@@ -19,6 +20,7 @@ import { UserProfile, AuthStage } from '@/types';
 import { SERVICE_TIERS } from '@/constants';
 
 const Home: React.FC = () => {
+  const router = useRouter();
   const { user: privyUser, login, logout } = usePrivy();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
