@@ -68,16 +68,13 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ title, subtitle, data = [],
 
       <div className="max-w-[1920px] mx-auto w-full relative">
         {/* Header Block */}
-        <div className={`mb-16 sm:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-10 border-l-[10px] ${accentBorder} pl-8 animate-in slide-in-from-left duration-1000`}>
-          <div className="flex items-center gap-8">
-            <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl shrink-0 group">
-               <div className="sm:group-hover:scale-110 sm:group-hover:rotate-12 transition-transform duration-700 text-decensat">{icon}</div>
-            </div>
-            <div className="max-w-4xl">
-              <h3 className="text-3xl sm:text-6xl lg:text-8xl font-black text-white tracking-tighter uppercase leading-none mb-3 italic">{title}</h3>
+        <div className={`mb-16 sm:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-10 border-l-[8px] ${accentBorder} pl-8 animate-in slide-in-from-left duration-1000`}>
+          <div className="max-w-4xl">
+              <h2 className="font-black text-white uppercase leading-[0.95]" style={{fontSize: 'clamp(1.15rem, 4vw, 2.35rem)', letterSpacing: '-0.04em', marginBottom: '1rem'}}>
+                Platform <span className="text-decensat italic">Capabilities</span>
+              </h2>
               <p className="text-slate-500 font-bold uppercase text-[10px] sm:text-lg lg:text-2xl tracking-[0.2em] italic">{subtitle}</p>
             </div>
-          </div>
           
           {showArrows && (
             <div className="hidden md:flex gap-4 shrink-0 pb-2">

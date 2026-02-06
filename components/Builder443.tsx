@@ -442,7 +442,7 @@ const Builder443: React.FC<Builder443Props> = ({ cart, onAddToCart, onRemoveFrom
             <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter uppercase leading-[0.85] mb-10">
               443 <span className="text-decensat italic">SMP</span>
             </h2>
-            <p className="text-2xl lg:text-3xl text-slate-400 font-bold leading-tight uppercase tracking-tight">
+            <p className="text-sm lg:text-base text-slate-400 font-bold leading-relaxed uppercase tracking-tight max-w-3xl">
               Self-configure your 443 Smart Collateral Contract. Multi-currency USDC integration enabled across Solana, Base, and Ethereum.
             </p>
           </div>

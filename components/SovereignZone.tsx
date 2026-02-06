@@ -56,7 +56,7 @@ const SuccessList: React.FC = () => {
             <span>ARCHITECTURE_PROTOCOL_LOCKED</span>
           </div>
           <div className="max-w-4xl">
-            <h2 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
+            <h2 className="font-black text-white uppercase leading-[0.95]" style={{fontSize: 'clamp(1.15rem, 4vw, 2.35rem)', letterSpacing: '-0.04em', marginBottom: '1rem'}}>
               Bundle <span className="text-decensat italic">Architecture</span>
             </h2>
             <p className="text-lg lg:text-2xl text-slate-400 font-bold uppercase tracking-tight leading-relaxed">
@@ -111,7 +111,6 @@ const SuccessList: React.FC = () => {
                 />
                 <TalentBadge 
                   title="Full Stack Ops"
-                  subtitle="Platform Hub"
                   icon={Layers}
                   bgColor="text-pink-500"
                 />

@@ -62,8 +62,8 @@ const HelpSection: React.FC = () => {
             <ShieldAlert size={14} className="text-decensat animate-pulse" />
             <span>KNOWLEDGE_REPOSITORY_V4.5.2 INSTITUTIONAL LOGIC</span>
           </div>
-          <div className="max-w-5xl">
-            <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
+          <div className="max-w-4xl">
+            <h2 className="font-black text-white uppercase leading-[0.95]" style={{fontSize: 'clamp(1.15rem, 4vw, 2.35rem)', letterSpacing: '-0.04em', marginBottom: '1rem'}}>
               Institutional <span className="text-decensat italic">Logic</span>
             </h2>
           </div>
@@ -94,11 +94,11 @@ const HelpSection: React.FC = () => {
             {filteredFaqs.map((faq) => (
               <div key={faq.id} className={`group bg-black border-[3px] rounded-[3rem] transition-all overflow-hidden ${openId === faq.id ? 'border-decensat scale-[1.01]' : 'border-white/5'}`}>
                 <button onClick={() => setOpenId(openId === faq.id ? null : faq.id)} className="w-full p-8 lg:p-14 text-left">
-                  <h4 className="text-xl lg:text-4xl font-black tracking-tighter uppercase">{faq.question}</h4>
+                  <h4 className="text-xl lg:text-2xl font-black tracking-tighter uppercase">{faq.question}</h4>
                 </button>
                 {openId === faq.id && (
-                  <div className="px-8 lg:px-14 pb-10 lg:pb-20">
-                    <p className="text-xl lg:text-4xl text-slate-300 leading-relaxed font-bold uppercase tracking-tight italic border-l-4 border-decensat/30 pl-8">{faq.answer}</p>
+                  <div className="px-8 lg:px-14 pb-10 lg:pb-14">
+                    <p className="text-sm lg:text-base text-slate-300 leading-relaxed font-medium uppercase tracking-tight border-l-4 border-decensat/30 pl-6 lg:pl-8 max-w-4xl">{faq.answer}</p>
                   </div>
                 )}
               </div>

@@ -13,7 +13,8 @@ import {
   Rocket,
   Settings,
   Lock,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import { UserProfile, AuthStage } from '../types';
 
@@ -22,19 +23,20 @@ interface AdminSidebarProps {
   activeId: string;
   onClose: () => void;
   user: UserProfile | null;
+  onLogout?: () => void;
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
   onNavigate, 
   activeId, 
   onClose, 
-  user
+  user,
+  onLogout
 }) => {
   const isReturningVerified = user && (user.authStage >= AuthStage.PrivyHandshakeComplete);
   const isC3Authorized = user && (user.authStage >= AuthStage.ProjectEngaged);
 
   const menuItems = [
-    { id: 'hero', label: 'Platform Hub', icon: Cpu },
     { id: 'portfolio', label: 'Portfolio Index', icon: Target },
     { id: 'node-infrastructure', label: 'Architecture', icon: Globe },
     { id: 'project-assessment', label: 'Audit Protocol', icon: ShieldCheck },
@@ -60,8 +62,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             D3
           </div>
           <div className="flex flex-col">
-            <span className="text-sm sm:text-base font-black tracking-tighter text-white uppercase leading-none">OS_TERMINAL</span>
-            <span className="text-[7px] sm:text-[9px] text-slate-500 font-bold uppercase tracking-[0.4em] mt-1.5">v4.5.2_PROD</span>
           </div>
         </div>
         <button 
@@ -74,7 +74,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </div>
 
       <nav className="flex-1 space-y-1.5 sm:space-y-3 relative z-10 overflow-y-auto no-scrollbar pr-2">
-        <div className="text-[8px] sm:text-[10px] font-black text-slate-700 uppercase tracking-[0.5em] mb-4 sm:mb-6 pl-4 sm:pl-6">Optimized_Routing</div>
         {menuItems.map((item) => {
           const isActive = activeId === item.id;
           return (
@@ -108,14 +107,25 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       <div className="mt-auto pt-6 sm:pt-10 border-t border-white/5 relative z-10">
         {user ? (
-          <div className="w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-[1.8rem] sm:rounded-[2.5rem] shadow-2xl">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-decensat/10 flex items-center justify-center text-decensat border border-decensat/30 shrink-0 shadow-glow-sm">
-              <User size={20} className="sm:size-[24px]" />
+          <div className="space-y-4">
+            <div className="w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-[1.8rem] sm:rounded-[2.5rem] shadow-2xl">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-decensat/10 flex items-center justify-center text-decensat border border-decensat/30 shrink-0 shadow-glow-sm">
+                <User size={20} className="sm:size-[24px]" />
+              </div>
+              <div className="text-left min-w-0 flex-1">
+                <div className="text-[10px] sm:text-[12px] text-white font-black uppercase truncate tracking-tight">{user.email.split('@')[0]}</div>
+                <div className="text-[7px] sm:text-[9px] text-decensat font-mono font-black uppercase tracking-widest mt-1">{isC3Authorized ? 'C3_ACTIVE' : (isReturningVerified ? 'VERIFIED' : 'GATED')}</div>
+              </div>
             </div>
-            <div className="text-left min-w-0 flex-1">
-              <div className="text-[10px] sm:text-[12px] text-white font-black uppercase truncate tracking-tight">{user.email.split('@')[0]}</div>
-              <div className="text-[7px] sm:text-[9px] text-decensat font-mono font-black uppercase tracking-widest mt-1">SRT_{user.srt} // {isC3Authorized ? 'C3_ACTIVE' : (isReturningVerified ? 'VERIFIED' : 'GATED')}</div>
-            </div>
+            {onLogout && (
+              <button 
+                onClick={onLogout}
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 py-3 sm:py-4 px-4 sm:px-6 bg-white/5 border border-rose-500/30 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-black uppercase text-[9px] sm:text-[10px] tracking-[0.3em] rounded-[1.2rem] sm:rounded-2xl transition-all active:scale-95"
+              >
+                <LogOut size={16} className="sm:size-[18px]" />
+                LOGOUT
+              </button>
+            )}
           </div>
         ) : (
           <button 

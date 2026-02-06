@@ -76,12 +76,10 @@ const OnboardingFlow: React.FC = () => {
           
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-12">
-               <div className="w-12 h-12 rounded-2xl bg-decensat flex items-center justify-center text-black shadow-glow-sm"><Rocket size={24} /></div>
                <span className="text-white font-black text-xl uppercase tracking-tighter">System_Intro</span>
             </div>
             
             <div className="space-y-4">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] font-mono">SYS_v4.5.2_ORCHESTRATION</div>
               <div className="text-4xl lg:text-6xl font-black text-white leading-none uppercase tracking-tighter">{step.feature}</div>
             </div>
           </div>

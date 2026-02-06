@@ -213,11 +213,7 @@ const PortfolioSection: React.FC = () => {
       
       <div className="mb-24 flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-l-[12px] border-decensat pl-12 animate-in slide-in-from-left duration-1000">
         <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-4 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 mb-8 shadow-2xl w-fit">
-            <Database size={16} className="text-decensat animate-pulse" />
-            <span>EXECUTION_INDEX_v4.5.2_PRODUCTION</span>
-          </div>
-          <h3 className="text-5xl lg:text-8xl font-black text-white tracking-tighter uppercase leading-[0.85] mb-8 italic">
+          <h3 className="text-2xl lg:text-4xl font-black text-white tracking-tighter uppercase leading-[0.85] mb-8 italic">
             Execution <span className="text-decensat not-italic">Index</span>
           </h3>
           <p className="text-xl lg:text-3xl text-slate-400 font-bold leading-tight uppercase tracking-tight max-w-3xl">

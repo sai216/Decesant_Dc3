@@ -251,10 +251,8 @@ const AiSolutionsSection: React.FC = () => {
                     <h4 className="text-base font-black text-decensat uppercase tracking-wider mb-5">Included Services</h4>
                     <div className="grid gap-3">
                       {learnMoreItem.services?.map((service, i) => (
-                        <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-decensat/10 to-transparent border border-decensat/30 hover:border-decensat/50 transition-all">
-                          <Sparkles className="w-5 h-5 text-decensat mt-0.5 flex-shrink-0" />
-                          <span className="text-sm font-bold text-slate-100 uppercase tracking-wide">{service}</span>
-                        </div>
+                        <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-decensat/10 to-transparent border border-decensat/30 hover:border-decensat/50 transition-all\">
+                          <span className="text-sm font-bold text-slate-100 uppercase tracking-wide">{service}</span>\n                        </div>
                       ))}
                     </div>
                   </div>
@@ -313,7 +311,7 @@ const AiSolutionsSection: React.FC = () => {
               <Brain strokeWidth={3} className="w-3 h-3" />
               <span>AI Automation Bundles</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase leading-none mb-2">
+            <h2 className="font-black text-white uppercase leading-[0.95]" style={{fontSize: 'clamp(1.15rem, 4vw, 2.35rem)', letterSpacing: '-0.04em', marginBottom: '0.5rem'}}>
               AI Automation <span className="text-decensat italic">Bundles</span>
             </h2>
             <p className="text-base text-slate-400 font-bold uppercase tracking-tight max-w-2xl italic">

@@ -74,9 +74,6 @@ const SeoTool: React.FC = () => {
           <div className="p-8 space-y-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-zinc-950/40">
             {!metadata ? (
               <div className="py-12 text-center space-y-8">
-                <div className="w-24 h-24 bg-zinc-900 rounded-[2rem] flex items-center justify-center mx-auto border-2 border-white/10 shadow-2xl">
-                  <Sparkles size={40} className="text-decensat animate-pulse" />
-                </div>
                 <div className="space-y-3">
                   <h3 className="text-white font-black text-xl uppercase tracking-tighter">Signal Analysis Required</h3>
                   <p className="text-slate-400 text-xs font-bold px-8 leading-relaxed uppercase tracking-widest opacity-80">Gemini will scan architectural and institutional signals to synthesize optimized metadata.</p>

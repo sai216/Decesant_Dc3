@@ -32,7 +32,6 @@ const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const navLinks = [
-    { id: 'hero', label: 'Platform Hub', icon: Cpu },
     { id: 'portfolio', label: 'Portfolio', icon: Target },
     { id: 'creative', label: 'Capabilities', icon: Zap },
     { id: 'node-infrastructure', label: 'Network', icon: Activity },
@@ -68,7 +67,6 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div className="hidden xs:flex flex-col leading-none text-left">
                 <span className="text-white font-black text-sm sm:text-base lg:text-lg tracking-tighter uppercase group-hover:text-decensat transition-colors">Decensat</span>
-                <span className="text-[6px] sm:text-[8px] text-slate-600 font-mono uppercase tracking-[0.5em] mt-1 sm:mt-1.5 font-black">SYS_v4.5.2_PROD</span>
               </div>
             </button>
           </div>

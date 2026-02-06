@@ -76,9 +76,6 @@ const PitchSlide = () => (
       <div className="mt-8 xs:mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
         <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-black text-decensat uppercase tracking-[0.4em] sm:tracking-[0.5em] text-center sm:text-left leading-relaxed">"No Loom. No intent. No approval."</div>
         <div className="flex items-center gap-4 text-[7px] xs:text-[8px] font-mono text-slate-600 uppercase tracking-widest">
-          <span>ID: L2L_VERIFY_v1</span>
-          <div className="w-1 h-1 rounded-full bg-slate-800" />
-          <span>SURA_C3_COMPLIANT</span>
         </div>
       </div>
     </div>
@@ -257,11 +254,7 @@ const Learn2LaunchPathway: React.FC = () => {
         
         <div className="mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-10 border-l-[6px] xs:border-l-[8px] border-decensat pl-5 sm:pl-8 animate-in slide-in-from-left duration-1000">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2.5 sm:gap-4 px-4 py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[8px] sm:text-[9px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] shadow-[0_0_30px_rgba(163,230,53,0.15)] w-fit mb-3 sm:mb-4">
-              <Rocket strokeWidth={3} className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse" />
-              <span>TALENT_VERIFICATION_v4.5</span>
-            </div>
-            <h2 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-[0.95] mb-2 sm:mb-3">
+            <h2 className="font-black text-white uppercase leading-[0.95]" style={{fontSize: 'clamp(1.15rem, 4vw, 2.35rem)', letterSpacing: '-0.04em', marginBottom: '1rem'}}>
               Talent <span className="text-decensat italic">Pathway</span>
             </h2>
             <p className="text-xs xs:text-sm sm:text-lg lg:text-xl text-slate-400 font-bold leading-tight uppercase tracking-tight max-w-3xl">
@@ -298,18 +291,19 @@ const Learn2LaunchPathway: React.FC = () => {
              <div className="p-8 sm:p-12 bg-zinc-950 border-4 border-white/5 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000"><UserCheck size={140} /></div>
                 <div className="relative z-10 space-y-8">
-                  <div className="text-[10px] font-black text-decensat uppercase tracking-[0.4em] flex items-center gap-3">
-                    <ShieldCheck size={14} /> Intake_Integrity_Monitor
-                  </div>
                   
                   {formStep === 'EMAIL' && (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
-                      <div className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tighter italic">Email_Authentication</div>
-                      <p className="text-sm sm:text-lg text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Authenticate via Privy to begin your talent verification journey.</p>
+                      <div className="text-lg xs:text-xl sm:text-2xl font-black text-white uppercase tracking-tight italic truncate">Email_Authentication</div>
+                      <p className="text-xs xs:text-sm sm:text-base text-slate-500 font-bold leading-relaxed uppercase tracking-tight">Authenticate via Privy to begin your talent verification journey.</p>
                       <div className="space-y-4">
-                         <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl">
-                           <ShieldCheck size={20} className="text-decensat animate-pulse" />
-                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Privy_Authentication: {isPrivyAuthenticated ? 'VERIFIED' : 'PENDING'}</span>
+                         <div className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-2xl overflow-hidden max-w-full">
+                           <ShieldCheck size={14} className="text-decensat animate-pulse shrink-0" />
+                           <div className="flex-1 min-w-0 flex items-center">
+                             <span className="text-[6px] xs:text-[7px] font-black text-slate-400 uppercase tracking-tighter truncate">
+                               Privy Auth: {isPrivyAuthenticated ? 'VERIFIED' : 'PENDING'}
+                             </span>
+                           </div>
                          </div>
                       </div>
                     </div>
@@ -398,10 +392,10 @@ const Learn2LaunchPathway: React.FC = () => {
                   <button 
                     onClick={handleNextToIdentity}
                     disabled={isSubmitting || privyLoading}
-                    className="w-full py-6 sm:py-8 bg-decensat text-black font-black uppercase text-xs sm:text-sm tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-6 active:scale-95 transform-gpu disabled:opacity-50"
+                    className="px-8 py-3 bg-decensat text-black font-black uppercase text-xs tracking-wider rounded-lg hover:bg-white transition-all shadow-lg inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                   >
-                    {isSubmitting || privyLoading ? <Loader2 size={24} className="animate-spin" /> : 'AUTHENTICATE_WITH_PRIVY'} 
-                    {!isSubmitting && !privyLoading && <ArrowRight size={24} strokeWidth={3} />}
+                    {isSubmitting || privyLoading ? <Loader2 size={16} className="animate-spin" /> : 'AUTHENTICATE'} 
+                    {!isSubmitting && !privyLoading && <ArrowRight size={16} strokeWidth={3} />}
                   </button>
                </div>
              )}
@@ -474,13 +468,13 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      <button onClick={() => setFormStep('EMAIL')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Email</button>
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-wrap">
+                      <button onClick={() => setFormStep('EMAIL')} className="px-6 py-2.5 bg-white/5 border border-white/10 text-slate-500 rounded-lg font-black uppercase text-xs hover:text-white transition-all">Back</button>
                       <button 
                         onClick={handleNextToClusters}
-                        className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
+                        className="px-8 py-3 bg-decensat text-black font-black uppercase text-xs tracking-wider rounded-lg hover:bg-white transition-all shadow-lg inline-flex items-center justify-center gap-2 active:scale-95"
                       >
-                        CONTINUE_TO_CLUSTERS <ArrowRight size={20} strokeWidth={3} />
+                        CONTINUE <ArrowRight size={16} strokeWidth={3} />
                       </button>
                   </div>
                </div>
@@ -525,13 +519,13 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      <button onClick={() => setFormStep('IDENT')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Identity</button>
+                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-wrap">
+                      <button onClick={() => setFormStep('IDENT')} className="px-6 py-2.5 bg-white/5 border border-white/10 text-slate-500 rounded-lg font-black uppercase text-xs hover:text-white transition-all">Back</button>
                       <button 
                         onClick={handleNextToContact}
-                        className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
+                        className="px-8 py-3 bg-decensat text-black font-black uppercase text-xs tracking-wider rounded-lg hover:bg-white transition-all shadow-lg inline-flex items-center justify-center gap-2 active:scale-95"
                       >
-                        CONTINUE_TO_CONTACT <ArrowRight size={20} strokeWidth={3} />
+                        CONTINUE <ArrowRight size={16} strokeWidth={3} />
                       </button>
                    </div>
                 </div>
@@ -573,15 +567,15 @@ const Learn2LaunchPathway: React.FC = () => {
                     </div>
                   )}
 
-                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      <button onClick={() => setFormStep('CLUSTERS')} className="px-8 sm:px-12 py-5 sm:py-6 bg-white/5 border border-white/10 text-slate-500 rounded-[2rem] font-black uppercase text-[10px] sm:text-xs hover:text-white transition-all">Back_to_Clusters</button>
+                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-wrap">
+                      <button onClick={() => setFormStep('CLUSTERS')} className="px-6 py-2.5 bg-white/5 border border-white/10 text-slate-500 rounded-lg font-black uppercase text-xs hover:text-white transition-all">Back</button>
                       <button 
                         onClick={handleNextToC3}
                         disabled={isSubmitting}
-                        className="flex-1 py-5 sm:py-6 bg-decensat text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] rounded-[2rem] hover:bg-white transition-all shadow-glow-md flex items-center justify-center gap-4 active:scale-95"
+                        className="px-8 py-3 bg-decensat text-black font-black uppercase text-xs tracking-wider rounded-lg hover:bg-white transition-all shadow-lg inline-flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                       >
-                        {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : 'INITIATE_C3'} 
-                        {!isSubmitting && <ArrowRight size={20} strokeWidth={3} />}
+                        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : 'INITIATE'} 
+                        {!isSubmitting && <ArrowRight size={16} strokeWidth={3} />}
                       </button>
                    </div>
                 </div>
@@ -589,15 +583,11 @@ const Learn2LaunchPathway: React.FC = () => {
 
              {formStep === 'C3' && (
                <div className="py-12 xs:py-20 text-center space-y-8 sm:space-y-12 animate-in zoom-in-95 duration-1000 relative z-10 h-full flex flex-col justify-center">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-decensat rounded-[2.5rem] sm:rounded-[3rem] flex items-center justify-center text-black mx-auto shadow-glow-md border-[6px] border-white/10 animate-pulse">
-                    <Sparkles size={48} strokeWidth={3} className="sm:size-[64px]" />
-                  </div>
                   <div className="space-y-6">
                     <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:py-2 rounded-full bg-decensat/10 border border-decensat/30 text-decensat text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-4 animate-pulse">
-                       <Rocket size={12} /> C3_INTEGRATION_ACTIVE
+                       C3_INTEGRATION_ACTIVE
                     </div>
                     <h3 className="text-2xl sm:text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-tight italic">
-                      Connecting to <br/><span className="text-decensat not-italic underline decoration-white/10 underline-offset-4 sm:underline-offset-8">C3 Network</span>
                     </h3>
                     <p className="text-sm sm:text-xl text-slate-500 font-bold max-w-lg mx-auto leading-relaxed uppercase tracking-tight">
                       C3 page integration is under development. Your data has been securely registered.

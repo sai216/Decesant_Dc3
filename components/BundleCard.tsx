@@ -144,9 +144,7 @@ const BundleCard: React.FC<BundleCardProps> = ({ bundle, isSelected, onAddToCart
               </>
             ) : (
               <>
-                <Rocket size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                 BOOK A CALL
-                <ArrowUpRight size={16} className="opacity-30" />
               </>
             )}
           </button>

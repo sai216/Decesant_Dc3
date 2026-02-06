@@ -20,7 +20,7 @@ export default function PrivyProvider({ children }: { children: React.ReactNode 
           accentColor: '#a3e635',
           logo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=decensat',
         },
-        loginMethods: ['email', 'sms','google'],
+        loginMethods: ['email', 'google'],
       }}
     >
       {children}

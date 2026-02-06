@@ -11,15 +11,15 @@ import ExecutionIndexPortfolio from '@/components/ExecutionIndexPortfolio';
 import HelpSection from '@/components/HelpSection';
 import SovereignFooter from '@/components/SovereignFooter';
 import WhatsAppSupport from '@/components/WhatsAppSupport';
-import ProjectAssessmentHub from '@/components/ProjectAssessmentHub';
+import ProjectAssessmentHub from '@/components/ProjectAssessmentHub_NEW';
 import Learn2LaunchPathway from '@/components/Learn2LaunchPathway';
 import AiConcierge from '@/components/AiConcierge';
-import { Menu, Radio, User as UserIcon, ShieldCheck, Fingerprint, Zap, Target, BookOpen, Rocket } from 'lucide-react';
+import { Menu, Radio, User as UserIcon, ShieldCheck, Fingerprint, Zap, Target, BookOpen, Rocket, ChevronDown } from 'lucide-react';
 import { UserProfile, AuthStage } from '@/types';
 import { SERVICE_TIERS } from '@/constants';
 
 const Home: React.FC = () => {
-  const { user: privyUser, login } = usePrivy();
+  const { user: privyUser, login, logout } = usePrivy();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -27,6 +27,8 @@ const Home: React.FC = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [systemTime, setSystemTime] = useState('');
   const mainRef = useRef<HTMLElement>(null);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
 
   const sections = useMemo(() => [
     { id: 'hero', label: 'Home' },
@@ -125,6 +127,41 @@ const Home: React.FC = () => {
     return () => mainElement.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+    } finally {
+      setAvatarMenuOpen(false);
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!avatarMenuRef.current) return;
+      if (!avatarMenuRef.current.contains(event.target as Node)) {
+        setAvatarMenuOpen(false);
+      }
+    };
+
+    if (avatarMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [avatarMenuOpen]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAvatarMenuOpen(false);
+    };
+
+    if (avatarMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [avatarMenuOpen]);
+
   // Navigation handler
   const handleNavigate = useCallback((id: string) => {
     const target = document.getElementById(id);
@@ -165,6 +202,7 @@ const Home: React.FC = () => {
             activeId={activeSection} 
             onClose={() => setSidebarOpen(false)} 
             user={currentUser}
+            onLogout={handleLogout}
           />
         </div>
       </div>
@@ -196,7 +234,6 @@ const Home: React.FC = () => {
               </div>
               <div className="hidden sm:flex flex-col text-left min-w-0">
                 <span className="text-white font-black text-xs lg:text-sm xl:text-base uppercase tracking-tighter leading-none group-hover:text-decensat transition-colors truncate">Decensat</span>
-                <span className="text-[6px] lg:text-[7px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-1 font-mono">SYS_v4.5.2</span>
               </div>
             </button>
           </div>
@@ -231,6 +268,59 @@ const Home: React.FC = () => {
 
           {/* Right Section - Properly constrained */}
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 xl:gap-8 shrink-0 min-w-0">
+            {currentUser && (
+              <div className="relative" ref={avatarMenuRef}>
+                <button
+                  onClick={() => setAvatarMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-1 h-9 w-auto sm:h-10 lg:h-12 px-2 rounded-full overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 transition-all outline-none focus-visible:ring-2 focus-visible:ring-decensat"
+                  aria-label="Open user menu"
+                  aria-expanded={avatarMenuOpen}
+                >
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 lg:h-11 lg:w-11 rounded-full overflow-hidden bg-white/5">
+                    {currentUser.avatarUrl ? (
+                      <img
+                        src={currentUser.avatarUrl}
+                        alt={currentUser.email}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-[10px] font-black uppercase text-white">
+                        {currentUser.email.slice(0, 2)}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    strokeWidth={3}
+                    className={`transition-transform duration-200 ${avatarMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {avatarMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-44 rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl backdrop-blur-xl z-[200]">
+                    <div className="px-4 py-3 border-b border-white/5">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Signed in</p>
+                      <p className="text-xs text-white font-semibold truncate">{currentUser.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        router.push('/c3');
+                        setAvatarMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors border-b border-white/5"
+                    >
+                      C3 Page
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors rounded-b-2xl"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             {/* CTA Button - Properly sized */}
             <button 
               onClick={handleLogin} 
